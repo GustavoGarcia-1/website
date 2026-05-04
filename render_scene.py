@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Render a MuJoCo scene with 3 robots standing and facing the camera.
-Clean background, no props — just the robots front and center.
+Render a MuJoCo scene with 3 robots in a hero-squad V-formation.
+Full bodies visible, angled inward, clean and cinematic.
 """
 
 import mujoco
@@ -29,20 +29,20 @@ spec.visual.global_.offwidth = WIDTH
 spec.visual.global_.offheight = HEIGHT
 spec.visual.quality.shadowsize = 4096
 
-# Sky / fog — light blue-gray
-spec.visual.rgba.fog = [0.88, 0.91, 0.95, 1.0]
-spec.visual.map.fogstart = 8.0
-spec.visual.map.fogend = 25.0
+# Sky / fog — clean light gradient
+spec.visual.rgba.fog = [0.90, 0.93, 0.96, 1.0]
+spec.visual.map.fogstart = 10.0
+spec.visual.map.fogend = 30.0
 
-# Skybox texture (gradient from light blue to white)
+# Skybox texture (subtle gradient — light blue to near-white)
 sky_tex = spec.add_texture()
 sky_tex.name = "sky"
 sky_tex.type = mujoco.mjtTexture.mjTEXTURE_SKYBOX
 sky_tex.builtin = mujoco.mjtBuiltin.mjBUILTIN_GRADIENT
 sky_tex.width = 512
 sky_tex.height = 512
-sky_tex.rgb1 = [0.75, 0.82, 0.92]  # horizon
-sky_tex.rgb2 = [0.90, 0.93, 0.97]  # zenith
+sky_tex.rgb1 = [0.82, 0.87, 0.94]  # horizon — soft blue
+sky_tex.rgb2 = [0.94, 0.96, 0.98]  # zenith — near white
 
 # ── Ground ───────────────────────────────────────────────────────────────────
 tex = spec.add_texture()
@@ -51,53 +51,53 @@ tex.type = mujoco.mjtTexture.mjTEXTURE_2D
 tex.builtin = mujoco.mjtBuiltin.mjBUILTIN_CHECKER
 tex.width = 512
 tex.height = 512
-tex.rgb1 = [0.82, 0.85, 0.89]
-tex.rgb2 = [0.78, 0.81, 0.85]
+tex.rgb1 = [0.86, 0.88, 0.91]
+tex.rgb2 = [0.83, 0.85, 0.88]
 
 mat_grid = spec.add_material()
 mat_grid.name = "grid_mat"
-mat_grid.texrepeat = [24, 24]
+mat_grid.texrepeat = [30, 30]
 mat_grid.textures[0] = "grid_tex"
-mat_grid.reflectance = 0.12
+mat_grid.reflectance = 0.25  # stronger reflections — Apple product page feel
 
 ground = spec.worldbody.add_geom()
 ground.type = mujoco.mjtGeom.mjGEOM_PLANE
-ground.size = [30, 30, 0.1]
-ground.rgba = [0.82, 0.84, 0.88, 1.0]
+ground.size = [40, 40, 0.1]
+ground.rgba = [0.88, 0.90, 0.93, 1.0]
 ground.name = "ground"
 ground.material = "grid_mat"
 
-# ── Lighting (3-point) ──────────────────────────────────────────────────────
+# ── Lighting (3-point, softer for cleaner look) ─────────────────────────────
 key = spec.worldbody.add_light()
-key.pos = [3, -5, 9]
-key.dir = [-0.2, 0.4, -0.7]
-key.diffuse = [1.0, 0.97, 0.93]
-key.specular = [0.5, 0.5, 0.5]
+key.pos = [2, -6, 10]
+key.dir = [-0.1, 0.4, -0.7]
+key.diffuse = [1.0, 0.98, 0.95]
+key.specular = [0.4, 0.4, 0.4]
 key.castshadow = True
 key.name = "key_light"
 
 fill_l = spec.worldbody.add_light()
-fill_l.pos = [-5, -2, 5]
+fill_l.pos = [-6, -3, 6]
 fill_l.dir = [0.4, 0.2, -0.5]
-fill_l.diffuse = [0.55, 0.60, 0.72]
-fill_l.specular = [0.12, 0.12, 0.12]
+fill_l.diffuse = [0.60, 0.65, 0.75]
+fill_l.specular = [0.10, 0.10, 0.10]
 fill_l.castshadow = False
 fill_l.name = "fill_light"
 
 rim = spec.worldbody.add_light()
-rim.pos = [0, 5, 4]
+rim.pos = [0, 6, 5]
 rim.dir = [0, -0.6, -0.4]
-rim.diffuse = [0.30, 0.35, 0.42]
-rim.specular = [0.15, 0.15, 0.15]
+rim.diffuse = [0.35, 0.38, 0.45]
+rim.specular = [0.18, 0.18, 0.18]
 rim.castshadow = False
 rim.name = "rim_light"
 
-# ── Camera (closer, robots fill the frame) ───────────────────────────────────
+# ── Camera — pulled back, elevated, full-body framing ────────────────────────
 cam = spec.worldbody.add_camera()
 cam.name = "hero_cam"
-cam.pos = [0.0, -3.0, 1.05]
-cam.quat = euler_to_quat(1.38, 0, 0)
-cam.fovy = 52
+cam.pos = [0.0, -4.2, 1.4]
+cam.quat = euler_to_quat(1.34, 0, 0)
+cam.fovy = 44
 
 # ── Load and attach robots ───────────────────────────────────────────────────
 print("Loading robot models...")
@@ -135,7 +135,6 @@ def set_joint(name, value):
     data.qpos[model.jnt_qposadr[jid]] = value
 
 def set_freejoint_by_body(body_name, pos, quat):
-    """Set free joint via its parent body name."""
     bid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, body_name)
     if bid < 0:
         print(f"  WARN: body '{body_name}' not found")
@@ -158,50 +157,62 @@ def set_freejoint(name, pos, quat):
     data.qpos[qa+3:qa+7] = quat
 
 # ══════════════════════════════════════════════════════════════════════════════
-# POSING — all 3 robots standing, facing the camera
+# POSING — hero squad V-formation
+#
+#       G1 (left)     Apollo (center)     H1 (right)
+#          \               |               /
+#           \              |              /
+#
+# Left/right robots angled inward, center faces straight at camera.
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Camera is at y=-2.8, so robots face -Y (toward camera) → yaw = -π/2
-
-# ── G1: standing, left side ──────────────────────────────────────────────────
-print("Posing G1 (standing, left)...")
+# ── G1: left side, angled inward ─────────────────────────────────────────────
+print("Posing G1 (left, angled in)...")
 set_freejoint("g1/floating_base_joint",
-              pos=[-1.4, 0.1, 0.72],
-              quat=euler_to_quat(0, 0, -1.57))  # facing camera
+              pos=[-1.6, 0.4, 0.72],
+              quat=euler_to_quat(0, 0, -1.20))  # angled ~30° inward
 
-# Relaxed standing pose — arms slightly out
-set_joint("g1/left_shoulder_pitch_joint", -0.15)
-set_joint("g1/left_shoulder_roll_joint", 0.20)
-set_joint("g1/left_elbow_joint", 0.30)
-set_joint("g1/right_shoulder_pitch_joint", -0.15)
-set_joint("g1/right_shoulder_roll_joint", -0.20)
-set_joint("g1/right_elbow_joint", 0.30)
+# Clean standing pose — arms relaxed, legs straight
+set_joint("g1/left_shoulder_pitch_joint", 0.05)
+set_joint("g1/left_shoulder_roll_joint", 0.12)
+set_joint("g1/left_elbow_joint", 0.15)
+set_joint("g1/right_shoulder_pitch_joint", 0.05)
+set_joint("g1/right_shoulder_roll_joint", -0.12)
+set_joint("g1/right_elbow_joint", 0.15)
 
-# ── Apollo: standing, center ────────────────────────────────────────────────
-print("Posing Apollo (standing, center)...")
+# Legs — straight standing
+set_joint("g1/left_hip_pitch_joint", 0.0)
+set_joint("g1/right_hip_pitch_joint", 0.0)
+set_joint("g1/left_knee_joint", 0.0)
+set_joint("g1/right_knee_joint", 0.0)
+set_joint("g1/left_ankle_pitch_joint", 0.0)
+set_joint("g1/right_ankle_pitch_joint", 0.0)
+
+# ── Apollo: center, slightly forward, facing camera ──────────────────────────
+print("Posing Apollo (center, forward)...")
 set_freejoint("apollo/floating_base",
-              pos=[0.0, 0.15, 1.07],
-              quat=euler_to_quat(0, 0, -1.57))  # facing camera
+              pos=[0.0, -0.15, 1.07],
+              quat=euler_to_quat(0, 0, -1.57))  # straight at camera
 
-# Relaxed standing pose
-set_joint("apollo/l_shoulder_aa", 0.15)
-set_joint("apollo/l_shoulder_fe", -0.10)
-set_joint("apollo/l_elbow_fe", -0.20)
-set_joint("apollo/r_shoulder_aa", -0.15)
-set_joint("apollo/r_shoulder_fe", -0.10)
-set_joint("apollo/r_elbow_fe", -0.20)
+# Confident standing pose — arms relaxed
+set_joint("apollo/l_shoulder_aa", 0.10)
+set_joint("apollo/l_shoulder_fe", -0.05)
+set_joint("apollo/l_elbow_fe", -0.12)
+set_joint("apollo/r_shoulder_aa", -0.10)
+set_joint("apollo/r_shoulder_fe", -0.05)
+set_joint("apollo/r_elbow_fe", -0.12)
 
-# ── H1: standing, right side ────────────────────────────────────────────────
-print("Posing H1 (standing, right)...")
+# ── H1: right side, angled inward ───────────────────────────────────────────
+print("Posing H1 (right, angled in)...")
 set_freejoint_by_body("h1/pelvis",
-                      pos=[1.4, 0.1, 1.02],
-                      quat=euler_to_quat(0, 0, -1.57))  # facing camera
+                      pos=[1.6, 0.4, 1.02],
+                      quat=euler_to_quat(0, 0, -1.94))  # angled ~30° inward
 
-# Relaxed standing pose
-set_joint("h1/left_shoulder_pitch", -0.10)
-set_joint("h1/left_shoulder_roll", 0.15)
-set_joint("h1/right_shoulder_pitch", -0.10)
-set_joint("h1/right_shoulder_roll", -0.15)
+# Clean standing pose — arms relaxed
+set_joint("h1/left_shoulder_pitch", 0.05)
+set_joint("h1/left_shoulder_roll", 0.10)
+set_joint("h1/right_shoulder_pitch", 0.05)
+set_joint("h1/right_shoulder_roll", -0.10)
 
 # ── Forward kinematics ──────────────────────────────────────────────────────
 mujoco.mj_forward(model, data)
