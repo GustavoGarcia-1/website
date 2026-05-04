@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gustavo Garcia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:     #ffffff;
+      --white:  #ffffff;
+      --text:   #182B49;
+      --muted:  #6b7c93;
+      --accent: #C69214;
+      --navy:   #182B49;
+      --border: rgba(24,43,73,0.10);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text);
+    }
+
+    /* ── NAV ──────────────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 52px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 15px; font-weight: 700; letter-spacing: 0.03em; color: var(--navy);
+      text-decoration: none;
+    }
+    .nav-brand img {
+      width: 36px; height: 36px; object-fit: contain;
+    }
+    .nav-links  { display: flex; gap: 36px; list-style: none; }
+    .nav-links button {
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); transition: color 0.2s; padding: 0;
+    }
+    .nav-links button:hover  { color: var(--navy); }
+    .nav-links button.active { color: var(--navy); }
+
+    /* ── PAGES ────────────────────────────────────────────────────── */
+    .page {
+      position: fixed; inset: 0; z-index: 1;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+      background: var(--bg);
+    }
+    .page.active { opacity: 1; pointer-events: all; }
+
+    /* ── HOME ─────────────────────────────────────────────────────── */
+    #page-home {
+      background: url('robots_bg.png') center center / cover no-repeat;
+      background-color: #dfe3e8;
+    }
+    #page-home::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 45%;
+      background: linear-gradient(to top, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+    .home-overlay {
+      position: absolute; inset: 0; z-index: 5;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-end;
+      padding-bottom: 100px;
+      gap: 14px; pointer-events: none;
+    }
+    .avatar {
+      width: 180px; height: 180px; border-radius: 50%;
+      background: #c0c8d4; border: 5px solid white;
+      box-shadow: 0 8px 36px rgba(24,43,73,0.22);
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #999; text-align: center; line-height: 1.5;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .home-name {
+      font-size: 62px; font-weight: 800; letter-spacing: -2.5px;
+      color: var(--navy);
+      text-shadow: 0 2px 20px rgba(255,255,255,0.8);
+    }
+    .home-sub {
+      font-size: 14px; font-weight: 600;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted);
+      text-shadow: 0 1px 8px rgba(255,255,255,0.6);
+    }
+
+    /* ── INNER PAGES ──────────────────────────────────────────────── */
+    .inner-page {
+      height: 100%; overflow-y: auto;
+      padding: 96px 72px 64px;
+      scrollbar-width: thin; scrollbar-color: #b0bcc8 transparent;
+    }
+    .page-title {
+      font-size: 42px; font-weight: 800;
+      letter-spacing: -1.5px; margin-bottom: 44px;
+      color: var(--navy);
+    }
+    .page-title em { color: var(--accent); font-style: normal; }
+
+    /* ABOUT */
+    .about-layout {
+      display: grid; grid-template-columns: 1.3fr 0.7fr;
+      gap: 60px; max-width: 860px; align-items: start;
+    }
+    .about-bio p { font-size: 15px; line-height: 1.8; color: #3a4f6a; margin-bottom: 18px; }
+    .label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { background: var(--navy); color: white; font-size: 12px; font-weight: 500; padding: 5px 14px; border-radius: 100px; }
+
+    /* PROJECTS */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 860px; }
+    .card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(24,43,73,0.09); }
+    .card-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--navy); }
+    .card p  { font-size: 13px; color: #5a6e85; line-height: 1.65; }
+
+    /* BLOG */
+    .blog-list { display: flex; flex-direction: column; gap: 12px; max-width: 700px; }
+    .blog-item {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px 28px;
+      display: flex; align-items: center; gap: 26px;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .blog-item:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(24,43,73,0.07); }
+    .blog-date { font-size: 11px; font-weight: 700; color: var(--accent); text-align: center; min-width: 44px; line-height: 1.4; }
+    .blog-item h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--navy); }
+    .blog-item p  { font-size: 13px; color: #6b7c93; }
+
+    /* RESUME */
+    .resume-wrap { max-width: 700px; }
+    .resume-section { margin-bottom: 36px; }
+    .resume-section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+    .resume-item { margin-bottom: 20px; }
+    .resume-item-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+    .resume-item-head strong { font-size: 15px; font-weight: 600; color: var(--navy); }
+    .resume-item-head span   { font-size: 12px; color: #8899aa; }
+    .resume-org { font-size: 13px; color: #6b7c93; margin-bottom: 6px; }
+    .resume-item ul { padding-left: 18px; font-size: 13px; color: #5a6e85; line-height: 1.8; }
+    .link-row { display: flex; gap: 24px; flex-wrap: wrap; }
+    .link-row a {
+      font-size: 14px; font-weight: 600; color: var(--navy);
+      text-decoration: none; border-bottom: 2px solid var(--accent);
+      padding-bottom: 1px; transition: color 0.2s;
+    }
+    .link-row a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">
+    <img src="UCSD-Seal-Logo.png" alt="UCSD">
+    Gustavo Garcia
+  </span>
+  <ul class="nav-links">
+    <li><button class="active" data-page="home">Home</button></li>
+    <li><button data-page="about">About</button></li>
+    <li><button data-page="projects">Projects</button></li>
+    <li><button data-page="blog">Blog</button></li>
+    <li><button data-page="resume">Resume</button></li>
+  </ul>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="home-overlay">
+    <div class="avatar"><img src="me.jpeg" alt="Gustavo Garcia"></div>
+    <h1 class="home-name">Gustavo Garcia</h1>
+    <p class="home-sub">Electrical Engineering &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; UC San Diego</p>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div id="page-about" class="page">
+  <div class="inner-page">
+    <h1 class="page-title">About <em>Me</em></h1>
+    <div class="about-layout">
+      <div class="about-bio">
+        <p>Hi, I'm Gustavo — an Electrical Engineering student with a passion for robotics, autonomous systems, and intelligent hardware design. I'm drawn to the challenge of making machines that can perceive, reason, and act in the physical world.</p>
+        <p>My work spans embedded systems, control theory, and machine learning for robotics — from motor controllers and custom PCBs to locomotion research and manipulation.</p>
+        <p>I'm actively looking for research and industry opportunities in the robotics space. Feel free to reach out.</p>
+      </div>
+      <div>
+        <p class="label">Skills &amp; Tools</p>
+        <div class="chips">
+          <span class="chip">Python</span>
+          <span class="chip">C / C++</span>
+          <span class="chip">ROS 2</span>
+          <span class="chip">MATLAB</span>
+          <span class="chip">Simulink</span>
+          <span class="chip">SolidWorks</span>
+          <span class="chip">PCB Design</span>
+          <span class="chip">Embedded Systems</span>
+          <span class="chip">Control Theory</span>
+          <span class="chip">Machine Learning</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECTS -->
+<div id="page-projects" class="page">
+  <div class="inner-page">
+    <h1 class="page-title">Projects</h1>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-tag">Robotics · Hardware</div>
+        <h3>Bipedal Robot Prototype</h3>
+        <p>Designed and built a small-scale bipedal robot with dynamic balance control using PID loops and IMU feedback on a custom PCB.</p>
+      </div>
+      <div class="card">
+        <div class="card-tag">Embedded Systems</div>
+        <h3>Custom Motor Controller</h3>
+        <p>Built a brushless DC motor controller on a custom STM32 PCB supporting field-oriented control (FOC) for precise torque management.</p>
+      </div>
+      <div class="card">
+        <div class="card-tag">Perception · ML</div>
+        <h3>Object Detection for Manipulation</h3>
+        <p>Trained a YOLO-based model for real-time object detection integrated with a 6-DOF arm for autonomous pick-and-place tasks.</p>
+      </div>
+      <div class="card">
+        <div class="card-tag">Simulation</div>
+        <h3>Sim-to-Real Locomotion</h3>
+        <p>Explored domain randomization in MuJoCo to train locomotion policies and transfer them to physical hardware with minimal gap.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BLOG -->
+<div id="page-blog" class="page">
+  <div class="inner-page">
+    <h1 class="page-title">Blog</h1>
+    <div class="blog-list">
+      <div class="blog-item">
+        <div class="blog-date">MAY<br>2026</div>
+        <div>
+          <h3>Getting Started with ROS 2: What I Wish I Knew</h3>
+          <p>A practical guide for EE students entering the robotics software world for the first time.</p>
+        </div>
+      </div>
+      <div class="blog-item">
+        <div class="blog-date">APR<br>2026</div>
+        <div>
+          <h3>Building My First PCB for a Robot Joint</h3>
+          <p>Lessons from designing a motor driver board — footprints, layout, and what went wrong on the first spin.</p>
+        </div>
+      </div>
+      <div class="blog-item">
+        <div class="blog-date">MAR<br>2026</div>
+        <div>
+          <h3>Why Sim-to-Real Is Harder Than It Looks</h3>
+          <p>My take after a semester trying to make MuJoCo locomotion policies work on real hardware.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESUME -->
+<div id="page-resume" class="page">
+  <div class="inner-page">
+    <h1 class="page-title">Resume</h1>
+    <div class="resume-wrap">
+      <div class="resume-section">
+        <div class="resume-section-title">Education</div>
+        <div class="resume-item">
+          <div class="resume-item-head">
+            <strong>B.S. Electrical Engineering</strong>
+            <span>Expected [Year]</span>
+          </div>
+          <div class="resume-org">University of California, San Diego</div>
+        </div>
+      </div>
+      <div class="resume-section">
+        <div class="resume-section-title">Experience</div>
+        <div class="resume-item">
+          <div class="resume-item-head">
+            <strong>[Role] — [Company / Lab]</strong>
+            <span>[Date Range]</span>
+          </div>
+          <div class="resume-org">[Location]</div>
+          <ul>
+            <li>Add your experience bullet points here</li>
+            <li>Quantify impact where possible</li>
+          </ul>
+        </div>
+      </div>
+      <div class="resume-section">
+        <div class="resume-section-title">Links</div>
+        <div class="link-row">
+          <a href="https://linkedin.com/in/gustavogarcia1" target="_blank">LinkedIn</a>
+          <a href="mailto:your@email.com">Email</a>
+          <a href="#" target="_blank">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── NAV ───────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-links button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + btn.dataset.page).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
