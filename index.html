@@ -438,7 +438,7 @@
   <div class="hero-content">
     <div class="hero-avatar"><img src="me.jpeg" alt="Gustavo Garcia"></div>
     <h1 class="hero-name">Gustavo Garcia</h1>
-    <p class="hero-sub">Electrical Engineering &nbsp;&middot;&nbsp; Robotics &nbsp;&middot;&nbsp; UC San Diego</p>
+    <p class="hero-sub">Electrical Engineering &nbsp;&middot;&nbsp; Machine Learning &amp; Controls &nbsp;&middot;&nbsp; UC San Diego</p>
   </div>
   <div class="scroll-indicator">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -453,22 +453,26 @@
     <h1 class="section-title">About <em>Me</em></h1>
     <div class="about-layout">
       <div class="about-bio">
-        <p>Hi, I'm Gustavo an Electrical Engineering engineering undergraduate with a passion for robotics, autonomous systems, and intelligent hardware design. I'm drawn to the challenge of making machines that can perceive, reason, and act in the physical world.</p>
-        <p>My work spans machine learning for robotics, through vision language action models, reinforcement learning, and more.</p>
-        <p>In my free time I enjoy staying active through sports like basketball, football, and tennis. I also love reading about the development of jazz music, during the era of people like Louis Armstrong and Malcom X. </p>
-        <p>I'm actively looking for research and industry opportunities in the robotics space</p>
+        <p>Hi, I'm Gustavo, an Electrical Engineering undergraduate at UC San Diego specializing in Machine Learning and Controls. I'm passionate about robotics, autonomous systems, and making machines that can perceive, reason, and act in the physical world.</p>
+        <p>As a Robotics Software Engineer and Incoming Vice President of Engineering at Triton Droids, UCSD's humanoid robotics club, my work spans vision-language-action models, reinforcement learning, and sim-to-real transfer for bipedal locomotion.</p>
+        <p>In my free time I enjoy staying active through sports like basketball, football, and tennis. I also love reading about the development of jazz music, during the era of people like Louis Armstrong and Malcolm X.</p>
+        <p>I'm actively looking for research and industry opportunities in the robotics space.</p>
       </div>
       <div>
         <p class="label">Skills &amp; Tools</p>
         <div class="chips">
           <span class="chip">Python</span>
-          <span class="chip">C / C++</span>
-          <span class="chip">ROS 2</span>
+          <span class="chip">C++</span>
+          <span class="chip">PID</span>
+          <span class="chip">LeRobot</span>
+          <span class="chip">HuggingFace</span>
+          <span class="chip">Git</span>
+          <span class="chip">Linux / Ubuntu</span>
           <span class="chip">Mujoco</span>
-          <span class="chip">CAD Design</span>
-          <span class="chip">PyTorch</span>
           <span class="chip">Reinforcement Learning</span>
           <span class="chip">Machine Learning</span>
+          <span class="chip">Onshape</span>
+          <span class="chip">EagleCAD</span>
         </div>
       </div>
     </div>
@@ -481,24 +485,19 @@
     <h1 class="section-title">Projects</h1>
     <div class="grid-2">
       <div class="card">
-        <div class="card-tag">Robotics &middot; Hardware</div>
-        <h3>Bipedal Robot Prototype</h3>
-        <p>Devloped in house humanoid robot through the school organization Triton Droids, implemented research papers on humanoid locomotion and overcame challges like sim2real and domain adaptation.</p>
+        <div class="card-tag">Foundation Models &middot; LeRobot</div>
+        <h3>Coffee Making Robot</h3>
+        <p>Collected demonstration dataset via teleoperation on so101 arms with multiple camera angles, covering the full coffee-making sequence. Trained a &pi;0.5 flow matching policy using LeRobot, experimenting with quantile and mean-std normalization to improve action prediction quality.</p>
       </div>
       <div class="card">
-        <div class="card-tag">Foundation Models</div>
-        <h3>Coffee Making Robot </h3>
-        <p>Deployed a vision language action model for autonomous coffee making.</p>
+        <div class="card-tag">Foundation Models &middot; LeRobot</div>
+        <h3>Cube Stacking Robot</h3>
+        <p>Trained smolVLA, ACT, and &pi;0.5 on so101 robotic arms with hours of teleoperation data to finetune and compare models for cube stacking. Ran training on H100 GPUs through VESSL AI, Google Colab, and SDCC, uploading checkpoints to HuggingFace for reproducibility.</p>
       </div>
       <div class="card">
-        <div class="card-tag">Perception &middot; ML</div>
-        <h3>Object Detection for Manipulation</h3>
-        <p>Trained a YOLO-based model for real-time object detection integrated with a 6-DOF arm for autonomous pick-and-place tasks.</p>
-      </div>
-      <div class="card">
-        <div class="card-tag">Simulation</div>
-        <h3>Sim-to-Real Locomotion</h3>
-        <p>Explored domain randomization in MuJoCo to train locomotion policies and transfer them to physical hardware with minimal gap.</p>
+        <div class="card-tag">RL &middot; Mujoco &middot; PPO</div>
+        <h3>Pick and Place Robot</h3>
+        <p>Built a GPU-accelerated RL environment for a robot arm in MuJoCo MJX and Brax, running 2048 parallelized rollouts in JAX. Designed multi-phase shaped rewards with tanh distance shaping and velocity-based stillness penalties. Trained PPO to 160M+ environment steps, tracked via Weights &amp; Biases.</p>
       </div>
     </div>
   </div>
@@ -543,23 +542,35 @@
         <div class="resume-section-title">Education</div>
         <div class="resume-item">
           <div class="resume-item-head">
-            <strong>B.S. Electrical Engineering</strong>
-            <span>Expected [Year]</span>
+            <strong>B.S. Electrical Engineering | Specialization in Machine Learning and Controls</strong>
+            <span>Sep. 2024 - 2028</span>
           </div>
-          <div class="resume-org">University of California, San Diego</div>
+          <div class="resume-org">University of California, San Diego &mdash; La Jolla, CA</div>
         </div>
       </div>
       <div class="resume-section">
         <div class="resume-section-title">Experience</div>
         <div class="resume-item">
           <div class="resume-item-head">
-            <strong>[Role] — [Company / Lab]</strong>
-            <span>[Date Range]</span>
+            <strong>Robotics Software Engineer | Incoming VP Engineering &mdash; Triton Droids</strong>
+            <span>Jan. 2025 - Present</span>
           </div>
-          <div class="resume-org">[Location]</div>
+          <div class="resume-org">La Jolla, CA &mdash; UC San Diego humanoid robotics club | Mujoco, Isaac Lab, Python, RL</div>
           <ul>
-            <li>Add your experience bullet points here</li>
-            <li>Quantify impact where possible</li>
+            <li>Led a VLA deployment team training Physical Intelligence's &pi;0.5 flow matching policy on teleoperated data using the LeRobot framework, iterating on quantile and mean-std action normalization to improve prediction fidelity across several manipulation tasks.</li>
+            <li>Configured dual camera pipelines with synchronized multi-view capture, implemented temporal task segmentation for long-horizon sequences, and validated learned policies on YAM / so101 robot arms in varied physical environments and lighting conditions.</li>
+            <li>Co-authored the software architecture section of the club's humanoid robot proposal, specifying a modular open-source control stack for bipedal locomotion with sim2real transfer via Isaac Lab.</li>
+            <li>Optimized the personal humanoid robot for locomotion, derived per-joint PD gains, friction coefficients, and armature inertia parameters from Robstride motor datasheets for a 10-DOF lower body, validating actuator dynamics in Isaac Lab to close the sim-to-real gap.</li>
+          </ul>
+        </div>
+        <div class="resume-item">
+          <div class="resume-item-head">
+            <strong>Summer Internship Prep Program &mdash; UC San Diego</strong>
+            <span>June 2024 - July 2024</span>
+          </div>
+          <div class="resume-org">Remote &mdash; Python, Circuitry, CAD</div>
+          <ul>
+            <li>Developed skills in CircuitPython/Python, Onshape, EagleCAD, and general circuitry, finished with a hackathon and end-of-summer capstone project.</li>
           </ul>
         </div>
       </div>
@@ -567,8 +578,7 @@
         <div class="resume-section-title">Links</div>
         <div class="link-row">
           <a href="https://linkedin.com/in/gustavogarcia1" target="_blank">LinkedIn</a>
-          <a href="mailto:your@email.com">Email</a>
-          <a href="#" target="_blank">GitHub</a>
+          <a href="mailto:gag009@ucsd.edu">Email</a>
         </div>
       </div>
     </div>
