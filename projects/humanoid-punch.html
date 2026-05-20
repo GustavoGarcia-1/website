@@ -154,13 +154,13 @@
   <div class="container">
     <a href="../index.html#projects" class="back-link">&larr; Back to portfolio</a>
 
-    <div class="project-tag">RL &middot; MJLab &middot; Mocap Imitation</div>
-    <h1>Humanoid Punch (URKL)</h1>
+    <div class="project-tag">RL &middot; PPO &middot;
+    <h1>Fighing Robot </h1>
     <div class="wip-badge">In Progress</div>
 
     <h2>Overview</h2>
-    <p>This project is part of URKL (Intense Humanoid Robot Combat) at Triton Droids. The goal: train an EngineAI T800 humanoid robot to throw a punch using reinforcement learning and motion capture imitation. The pipeline converts real boxing mocap data into joint trajectories, then uses PPO to train a policy that tracks the full-body motion — including maintaining balance while delivering a strike.</p>
-    <p>The system is built on MJLab, a MuJoCo-based RL framework with RSL-RL as the training backend. The T800 model has 30 DOFs tracked across 14 body segments, with self-collision detection and adaptive curriculum sampling to handle the difficulty of violent, asymmetric motions like punches.</p>
+    <p>This project is part of a humanoid robot fighting league ran by Engine AI. The goal is to train the T800 humanoid to perform fighting combinations, in preperation for real world deployment against other robots. The pipeline were starting with converts real boxing motion capture data into joint trajectories, then uses PPO to train a policy that references the human performing the motion.</p>
+    <p>The system is built on MJLab, a MuJoCo based RL framework with RSL RL as the training backend. The T800 model has 30 DOFs tracked across 14 body segments, with self collision detection and adaptive curriculum sampling to handle the difficulty of violent, asymmetric motions like punches.</p>
 
     <div class="video-wrap">
       <video controls loop muted playsinline>
@@ -170,7 +170,7 @@
     </div>
 
     <h2>Mocap Data &amp; Motion Loading</h2>
-    <p>Boxing motion capture data is converted from BVH format into NPZ files containing joint positions, joint velocities, body positions, orientations, and linear/angular velocities for every tracked body segment at each timestep. The <code>MotionLoader</code> class indexes into this data at runtime, mapping mocap body segments to the T800's kinematic tree.</p>
+    <p>Boxing motion capture data is converted from NPY format into NPZ files containing joint positions, joint velocities, body positions, orientations, and linear/angular velocities for every tracked body segment at each timestep. The <code>MotionLoader</code> class indexes into this data at runtime, mapping mocap body segments to the T800's kinematic tree.</p>
 
     <div class="file-label">mjlab/src/mjlab/tasks/tracking/mdp/commands.py</div>
 <pre><code><span class="code-keyword">class</span> <span class="code-type">MotionLoader</span>:
