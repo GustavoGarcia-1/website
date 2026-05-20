@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline RL + smolVLA – Gustavo Garcia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:      #ffffff;
+      --surface: #f7f8fa;
+      --text:    #1a1a2e;
+      --muted:   #6b7280;
+      --accent:  #2563eb;
+      --border:  rgba(0,0,0,0.08);
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+
+    .back-link {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 48px;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    .project-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 40px;
+      color: var(--text);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.8;
+    }
+
+    .image-placeholder {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      margin: 28px 0;
+    }
+
+    pre {
+      background: #0d1b2a;
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+      font-size: 13px;
+      color: #e6edf3;
+      line-height: 1.7;
+    }
+    .code-comment { color: #6a9955; }
+    .code-keyword { color: #c586c0; }
+    .code-string { color: #ce9178; }
+    .code-func { color: #dcdcaa; }
+    .code-number { color: #b5cea8; }
+    .code-type { color: #4ec9b0; }
+    .code-param { color: #9cdcfe; }
+
+    .file-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+    }
+
+    .wip-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffffff;
+      background: var(--accent);
+      padding: 4px 14px;
+      border-radius: 100px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 40px 20px 80px; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="../index.html#projects" class="back-link">&larr; Back to portfolio</a>
+
+    <div class="project-tag">Offline RL &middot; smolVLA &middot; MuJoCo</div>
+    <h1>Offline RL + smolVLA</h1>
+    <div class="wip-badge">In Progress</div>
+
+    <h2>Overview</h2>
+    <p>This project combines offline reinforcement learning with vision-language-action (VLA) pretraining to improve simulated robotic manipulation. The core idea: take a smolVLA base model pretrained on vision-language-action data, then apply Physical Intelligence's pi0.6 RECAP offline RL framework to fine-tune it for specific manipulation tasks in MuJoCo — without any additional online data collection.</p>
+    <p>The goal is to show that offline RL fine-tuning on top of a VLA backbone can improve sample efficiency and task performance compared to either approach alone. By leveraging the generalization of VLA pretraining and the policy improvement of offline RL, the system should learn better manipulation policies from fixed datasets.</p>
+
+    <h2>Architecture</h2>
+    <p>The architecture uses smolVLA as the base vision-language-action model, providing a pretrained backbone that maps visual observations and language instructions to action predictions. The pi0.6 RECAP framework is layered on top, applying offline RL fine-tuning to improve the policy using previously collected trajectory data without requiring new environment interactions.</p>
+
+    <div class="file-label">config/model.py (placeholder)</div>
+<pre><code><span class="code-comment"># Architecture overview (placeholder)</span>
+<span class="code-comment"># smolVLA base model → pi0.6 RECAP offline RL layer</span>
+
+<span class="code-keyword">class</span> <span class="code-type">OfflineRLVLAPolicy</span>:
+    <span class="code-keyword">def</span> <span class="code-func">__init__</span>(<span class="code-param">self</span>, <span class="code-param">vla_checkpoint</span>: str, <span class="code-param">recap_config</span>: dict):
+        <span class="code-param">self</span>.vla_backbone = <span class="code-func">load_smolvla</span>(vla_checkpoint)
+        <span class="code-param">self</span>.recap_head = <span class="code-type">RECAPHead</span>(recap_config)
+
+    <span class="code-keyword">def</span> <span class="code-func">forward</span>(<span class="code-param">self</span>, <span class="code-param">obs</span>, <span class="code-param">language_instruction</span>):
+        <span class="code-param">vla_features</span> = <span class="code-param">self</span>.vla_backbone.<span class="code-func">encode</span>(obs, language_instruction)
+        <span class="code-param">actions</span> = <span class="code-param">self</span>.recap_head.<span class="code-func">predict</span>(vla_features)
+        <span class="code-keyword">return</span> actions
+</code></pre>
+
+    <div class="image-placeholder">Add diagram here — smolVLA + RECAP architecture overview</div>
+
+    <h2>Simulation Environment</h2>
+    <p>The manipulation environment is built in MuJoCo, featuring a tabletop setup with a robot arm and objects to manipulate. The environment provides RGB image observations from one or more camera views, proprioceptive state, and accepts continuous joint-space or end-effector actions.</p>
+
+    <div class="file-label">envs/manipulation_env.py (placeholder)</div>
+<pre><code><span class="code-comment"># MuJoCo manipulation environment (placeholder)</span>
+
+<span class="code-keyword">class</span> <span class="code-type">ManipulationEnv</span>:
+    <span class="code-keyword">def</span> <span class="code-func">__init__</span>(<span class="code-param">self</span>, <span class="code-param">task</span>: str, <span class="code-param">camera_names</span>: list[str]):
+        <span class="code-param">self</span>.model = mujoco.<span class="code-func">MjModel</span>.<span class="code-func">from_xml_path</span>(<span class="code-func">get_task_xml</span>(task))
+        <span class="code-param">self</span>.data = mujoco.<span class="code-func">MjData</span>(<span class="code-param">self</span>.model)
+        <span class="code-param">self</span>.cameras = camera_names
+
+    <span class="code-keyword">def</span> <span class="code-func">get_obs</span>(<span class="code-param">self</span>) -> dict:
+        <span class="code-param">images</span> = {cam: <span class="code-param">self</span>.<span class="code-func">render</span>(cam) <span class="code-keyword">for</span> cam <span class="code-keyword">in</span> <span class="code-param">self</span>.cameras}
+        <span class="code-param">proprio</span> = <span class="code-param">self</span>.<span class="code-func">get_proprioception</span>()
+        <span class="code-keyword">return</span> {<span class="code-string">"images"</span>: images, <span class="code-string">"proprio"</span>: proprio}
+
+    <span class="code-keyword">def</span> <span class="code-func">step</span>(<span class="code-param">self</span>, <span class="code-param">action</span>):
+        <span class="code-param">self</span>.data.ctrl[:] = action
+        mujoco.<span class="code-func">mj_step</span>(<span class="code-param">self</span>.model, <span class="code-param">self</span>.data)
+        <span class="code-keyword">return</span> <span class="code-param">self</span>.<span class="code-func">get_obs</span>(), <span class="code-param">self</span>.<span class="code-func">compute_reward</span>(), <span class="code-param">self</span>.<span class="code-func">check_done</span>()
+</code></pre>
+
+    <div class="image-placeholder">Add screenshot here — MuJoCo manipulation environment render</div>
+
+    <h2>Training &amp; Status</h2>
+    <p>This project is in its early stages. Current progress includes setting up the MuJoCo simulation environment and reviewing the pi0.6 RECAP paper and smolVLA codebase. Next steps involve collecting an offline dataset of manipulation trajectories, integrating the smolVLA backbone with the RECAP training loop, and running initial fine-tuning experiments.</p>
+
+    <div class="image-placeholder">Add screenshot here — training curves / evaluation results (coming soon)</div>
+    <div class="image-placeholder">Add screenshot here — policy rollout visualization (coming soon)</div>
+  </div>
+</body>
+</html>

@@ -130,6 +130,19 @@
       font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
     }
 
+    .wip-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffffff;
+      background: var(--accent);
+      padding: 4px 14px;
+      border-radius: 100px;
+      margin-bottom: 32px;
+    }
+
     @media (max-width: 768px) {
       .container { padding: 40px 20px 80px; }
       h1 { font-size: 28px; }
@@ -143,6 +156,7 @@
 
     <div class="project-tag">RL &middot; MJLab &middot; Mocap Imitation</div>
     <h1>Humanoid Punch (URKL)</h1>
+    <div class="wip-badge">In Progress</div>
 
     <h2>Overview</h2>
     <p>This project is part of URKL (Intense Humanoid Robot Combat) at Triton Droids. The goal: train an EngineAI T800 humanoid robot to throw a punch using reinforcement learning and motion capture imitation. The pipeline converts real boxing mocap data into joint trajectories, then uses PPO to train a policy that tracks the full-body motion — including maintaining balance while delivering a strike.</p>
