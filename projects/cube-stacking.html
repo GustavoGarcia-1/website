@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cube Stacking Robot – Gustavo Garcia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:      #ffffff;
+      --surface: #f7f8fa;
+      --text:    #1a1a2e;
+      --muted:   #6b7280;
+      --accent:  #2563eb;
+      --border:  rgba(0,0,0,0.08);
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+
+    .back-link {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 48px;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    .project-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 40px;
+      color: var(--text);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.8;
+    }
+
+    .image-placeholder {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      margin: 28px 0;
+    }
+
+    pre {
+      background: #0d1b2a;
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+      font-size: 13px;
+      color: #e6edf3;
+      line-height: 1.7;
+    }
+    .code-comment { color: #6a9955; }
+    .code-keyword { color: #c586c0; }
+    .code-string { color: #ce9178; }
+    .code-func { color: #dcdcaa; }
+
+    @media (max-width: 768px) {
+      .container { padding: 40px 20px 80px; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="../index.html#projects" class="back-link">&larr; Back to portfolio</a>
+
+    <div class="project-tag">Foundation Models &middot; LeRobot</div>
+    <h1>Cube Stacking Robot</h1>
+
+    <h2>Overview</h2>
+    <p>This project benchmarks multiple vision-language-action architectures on a cube stacking task using the so101 robotic arms. I trained and compared three models — smolVLA, ACT (Action Chunking with Transformers), and &pi;0.5 — on a shared teleoperation dataset to understand their relative strengths and failure modes for precise pick-and-place manipulation.</p>
+    <p>Training was distributed across H100 GPUs via VESSL AI, Google Colab, and the San Diego Supercomputer Center (SDCC). All checkpoints were uploaded to HuggingFace for reproducibility and community access.</p>
+
+    <div class="image-placeholder">Add screenshot here — cube stacking demo / robot setup</div>
+
+    <h2>Data Collection &amp; Preprocessing</h2>
+    <p>Hours of teleoperation data were collected on the so101 arms, with the operator performing cube stacking sequences of varying difficulty (single stack, multi-stack, different starting positions). Each episode was recorded with synchronized multi-view cameras to provide both top-down and wrist-level perspectives.</p>
+    <p>Data was preprocessed into the LeRobot dataset format with consistent frame rates and action representations across all training runs to ensure fair comparison between model architectures.</p>
+
+<pre><code><span class="code-comment"># Example: Loading a LeRobot dataset for training</span>
+<span class="code-keyword">from</span> lerobot.common.datasets <span class="code-keyword">import</span> LeRobotDataset
+
+dataset = <span class="code-func">LeRobotDataset</span>(
+    repo_id=<span class="code-string">"gustavo/cube-stacking-so101"</span>,
+    split=<span class="code-string">"train"</span>,
+)
+<span class="code-keyword">print</span>(f<span class="code-string">"Episodes: {dataset.num_episodes}"</span>)
+<span class="code-keyword">print</span>(f<span class="code-string">"Total frames: {len(dataset)}"</span>)
+</code></pre>
+
+    <div class="image-placeholder">Add screenshot here — dataset samples / camera perspectives</div>
+
+    <h2>Model Comparison</h2>
+    <p>Each model was trained on the same dataset with architecture-specific hyperparameters tuned on a validation split:</p>
+    <p><strong>smolVLA</strong> — A lightweight VLA model designed for efficiency. It uses a compact vision encoder and smaller language backbone, making it faster to train and run inference on but potentially sacrificing representation capacity.</p>
+    <p><strong>ACT (Action Chunking with Transformers)</strong> — Predicts chunks of future actions using a CVAE encoder-decoder architecture. ACT's action chunking approach helps with temporal consistency, reducing the compounding error problem in sequential prediction.</p>
+    <p><strong>&pi;0.5</strong> — Physical Intelligence's flow matching policy that generates continuous action trajectories. Its flow-based formulation allows for smooth, precise motions well-suited to stacking tasks.</p>
+
+<pre><code><span class="code-comment"># Example: Training ACT with LeRobot</span>
+python lerobot/scripts/train.py \
+    policy=act \
+    env=so101_cube_stacking \
+    dataset_repo_id=<span class="code-string">gustavo/cube-stacking-so101</span> \
+    training.num_epochs=<span class="code-string">300</span> \
+    training.batch_size=<span class="code-string">64</span> \
+    wandb.enable=<span class="code-string">true</span>
+</code></pre>
+
+    <div class="image-placeholder">Add screenshot here — training curves comparison across models</div>
+
+    <h2>Training Infrastructure &amp; Results</h2>
+    <p>Training was distributed across multiple compute platforms. VESSL AI and SDCC provided H100 GPU access for the larger models (&pi;0.5), while Google Colab was used for lighter experiments and ablations with smolVLA and ACT. All runs were tracked with Weights &amp; Biases for consistent metric comparison.</p>
+    <p>Each model's checkpoints were uploaded to HuggingFace, making it straightforward to load and evaluate any checkpoint for real-world rollouts on the so101 arms.</p>
+    <p>The comparison revealed trade-offs between model size, training compute, and task success rate that informed our team's architecture choices for future manipulation tasks at Triton Droids.</p>
+
+    <div class="image-placeholder">Add screenshot here — results table / success rate comparison</div>
+  </div>
+</body>
+</html>

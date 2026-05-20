@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coffee Making Robot – Gustavo Garcia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:      #ffffff;
+      --surface: #f7f8fa;
+      --text:    #1a1a2e;
+      --muted:   #6b7280;
+      --accent:  #2563eb;
+      --border:  rgba(0,0,0,0.08);
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+
+    .back-link {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 48px;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    .project-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 40px;
+      color: var(--text);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.8;
+    }
+
+    .image-placeholder {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      margin: 28px 0;
+    }
+
+    pre {
+      background: #0d1b2a;
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+      font-size: 13px;
+      color: #e6edf3;
+      line-height: 1.7;
+    }
+    .code-comment { color: #6a9955; }
+    .code-keyword { color: #c586c0; }
+    .code-string { color: #ce9178; }
+    .code-func { color: #dcdcaa; }
+
+    @media (max-width: 768px) {
+      .container { padding: 40px 20px 80px; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="../index.html#projects" class="back-link">&larr; Back to portfolio</a>
+
+    <div class="project-tag">Foundation Models &middot; LeRobot</div>
+    <h1>Coffee Making Robot</h1>
+
+    <h2>Overview</h2>
+    <p>This project tackles multi-step robotic manipulation for an everyday task: making coffee. Using the so101 robot arms and the LeRobot framework, I collected a teleoperation dataset covering the full coffee-making sequence — from grasping the cup, to positioning it under the machine, to operating the brew button. The goal was to train a vision-language-action policy that could reproduce this long-horizon behavior from learned demonstrations.</p>
+    <p>I used Physical Intelligence's &pi;0.5 flow matching architecture as the backbone, fine-tuning it on the collected dataset. A key focus was on action normalization strategies, comparing quantile normalization against mean-std normalization to understand their effects on prediction fidelity and trajectory smoothness.</p>
+
+    <div class="image-placeholder">Add screenshot here — project demo / robot setup</div>
+
+    <h2>Data Collection Pipeline</h2>
+    <p>Demonstration data was collected by teleoperating the so101 arms through the full coffee-making sequence. Each episode was captured from multiple synchronized camera angles to provide rich visual context for the policy. I implemented temporal task segmentation to break long-horizon sequences into distinct phases (reach, grasp, pour, place), which helped the model learn phase transitions more reliably.</p>
+    <p>The dataset was uploaded to HuggingFace for version control and reproducibility.</p>
+
+<pre><code><span class="code-comment"># Example: LeRobot dataset recording configuration</span>
+<span class="code-keyword">from</span> lerobot.common.datasets <span class="code-keyword">import</span> LeRobotDataset
+
+dataset = <span class="code-func">LeRobotDataset</span>(
+    repo_id=<span class="code-string">"gustavo/coffee-making-so101"</span>,
+    fps=<span class="code-string">30</span>,
+    video=<span class="code-keyword">True</span>,
+    image_keys=[<span class="code-string">"observation.images.top"</span>, <span class="code-string">"observation.images.wrist"</span>],
+)
+</code></pre>
+
+    <div class="image-placeholder">Add screenshot here — data collection setup / camera views</div>
+
+    <h2>Model Architecture &amp; Training</h2>
+    <p>The &pi;0.5 flow matching policy was fine-tuned on the collected dataset using the LeRobot training pipeline. Flow matching generates smooth, continuous action trajectories by learning a vector field that maps noise to demonstrations — making it well-suited for precise manipulation tasks.</p>
+    <p>I experimented with two normalization strategies for the action space: quantile normalization (which maps actions to a uniform distribution) and mean-std normalization (which centers and scales by standard deviation). Quantile normalization proved more robust for tasks with multi-modal action distributions, while mean-std worked well for smoother, unimodal sequences.</p>
+
+<pre><code><span class="code-comment"># Example: Training configuration for pi0.5</span>
+training:
+  policy: <span class="code-string">"pi0.5"</span>
+  batch_size: <span class="code-string">32</span>
+  lr: <span class="code-string">1e-4</span>
+  num_epochs: <span class="code-string">200</span>
+  normalization: <span class="code-string">"quantile"</span>   <span class="code-comment"># vs "mean_std"</span>
+  action_chunk_size: <span class="code-string">50</span>
+</code></pre>
+
+    <div class="image-placeholder">Add screenshot here — training curves / results comparison</div>
+
+    <h2>Results &amp; Takeaways</h2>
+    <p>The trained policy was able to execute the full coffee-making sequence with reasonable success rate from the learned demonstrations. Key findings included the importance of camera placement for consistent visual features, and the significant impact that normalization choice has on action prediction quality — especially for tasks involving multiple distinct motion phases.</p>
+    <p>Future work includes expanding the dataset with more diverse episodes and testing policy generalization across different cup placements and coffee machine configurations.</p>
+
+    <div class="image-placeholder">Add screenshot here — successful rollout / evaluation metrics</div>
+  </div>
+</body>
+</html>

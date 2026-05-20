@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pick and Place Robot – Gustavo Garcia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:      #ffffff;
+      --surface: #f7f8fa;
+      --text:    #1a1a2e;
+      --muted:   #6b7280;
+      --accent:  #2563eb;
+      --border:  rgba(0,0,0,0.08);
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+
+    .back-link {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 48px;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    .project-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 40px;
+      color: var(--text);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.8;
+    }
+
+    .image-placeholder {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      margin: 28px 0;
+    }
+
+    pre {
+      background: #0d1b2a;
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+      font-size: 13px;
+      color: #e6edf3;
+      line-height: 1.7;
+    }
+    .code-comment { color: #6a9955; }
+    .code-keyword { color: #c586c0; }
+    .code-string { color: #ce9178; }
+    .code-func { color: #dcdcaa; }
+    .code-number { color: #b5cea8; }
+
+    @media (max-width: 768px) {
+      .container { padding: 40px 20px 80px; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="../index.html#projects" class="back-link">&larr; Back to portfolio</a>
+
+    <div class="project-tag">RL &middot; Mujoco &middot; PPO</div>
+    <h1>Pick and Place Robot</h1>
+
+    <h2>Overview</h2>
+    <p>This project applies deep reinforcement learning to train a simulated robot arm for pick-and-place manipulation. Using MuJoCo MJX and Brax for GPU-accelerated physics simulation, I built a fully parallelized training pipeline in JAX that runs 2,048 environments simultaneously — enabling the agent to accumulate 160M+ environment steps efficiently.</p>
+    <p>The core challenge was reward engineering: designing a multi-phase shaped reward function that guides the agent through reaching, grasping, lifting, and placing — without creating reward hacking opportunities or local optima.</p>
+
+    <div class="image-placeholder">Add screenshot here — MuJoCo simulation / pick-and-place task</div>
+
+    <h2>Environment Design</h2>
+    <p>The environment was built on MuJoCo MJX, which compiles physics simulation to XLA for GPU execution via JAX. This allowed running 2,048 parallel rollouts on a single GPU, dramatically accelerating data collection compared to CPU-based simulation.</p>
+    <p>The task involves a robot arm that must pick up an object from a randomized starting position and place it at a target location. Observations include joint positions, velocities, end-effector pose, object pose, and target position. Actions control joint torques directly.</p>
+
+<pre><code><span class="code-comment"># Environment setup with MJX for GPU-accelerated simulation</span>
+<span class="code-keyword">import</span> mujoco
+<span class="code-keyword">from</span> mujoco <span class="code-keyword">import</span> mjx
+<span class="code-keyword">import</span> jax
+
+<span class="code-comment"># Load model and compile to MJX</span>
+model = mujoco.<span class="code-func">MjModel.from_xml_path</span>(<span class="code-string">"robot_arm.xml"</span>)
+mjx_model = mjx.<span class="code-func">put_model</span>(model)
+
+<span class="code-comment"># Vectorize across 2048 parallel environments</span>
+batch_size = <span class="code-number">2048</span>
+rng = jax.random.<span class="code-func">split</span>(jax.random.<span class="code-func">PRNGKey</span>(<span class="code-number">0</span>), batch_size)
+batched_step = jax.<span class="code-func">vmap</span>(env_step)
+</code></pre>
+
+    <div class="image-placeholder">Add screenshot here — environment visualization / observation space</div>
+
+    <h2>Reward Shaping</h2>
+    <p>The reward function uses a multi-phase structure that guides the agent through the full pick-and-place sequence. Each phase activates based on task progress, preventing the agent from exploiting early-phase rewards while ignoring later objectives.</p>
+    <p>Key components include tanh-based distance shaping (providing smooth gradients at all distances), velocity-based stillness penalties (discouraging jerky motions during grasping), and grasp success bonuses that gate the transition to the placement phase.</p>
+
+<pre><code><span class="code-comment"># Multi-phase shaped reward function</span>
+<span class="code-keyword">def</span> <span class="code-func">compute_reward</span>(state):
+    ee_pos = state.end_effector_pos
+    obj_pos = state.object_pos
+    target_pos = state.target_pos
+
+    <span class="code-comment"># Phase 1: Reach — tanh distance shaping</span>
+    reach_dist = jnp.<span class="code-func">linalg.norm</span>(ee_pos - obj_pos)
+    reach_reward = <span class="code-number">1.0</span> - jnp.<span class="code-func">tanh</span>(<span class="code-number">5.0</span> * reach_dist)
+
+    <span class="code-comment"># Phase 2: Grasp — stillness penalty + contact bonus</span>
+    velocity_penalty = -<span class="code-number">0.1</span> * jnp.<span class="code-func">linalg.norm</span>(state.ee_velocity)
+    grasp_bonus = <span class="code-number">2.0</span> * state.is_grasped
+
+    <span class="code-comment"># Phase 3: Place — distance to target (gated on grasp)</span>
+    place_dist = jnp.<span class="code-func">linalg.norm</span>(obj_pos - target_pos)
+    place_reward = state.is_grasped * (<span class="code-number">1.0</span> - jnp.<span class="code-func">tanh</span>(<span class="code-number">5.0</span> * place_dist))
+
+    <span class="code-keyword">return</span> reach_reward + velocity_penalty + grasp_bonus + place_reward
+</code></pre>
+
+    <div class="image-placeholder">Add screenshot here — reward curves / phase transitions</div>
+
+    <h2>Training &amp; Results</h2>
+    <p>The agent was trained using PPO (Proximal Policy Optimization) for 160M+ environment steps. Training was tracked via Weights &amp; Biases, logging episode returns, success rates, phase completion rates, and policy entropy over the course of training.</p>
+    <p>The parallelized JAX pipeline made it feasible to run large-scale hyperparameter sweeps over reward coefficients, learning rates, and network architectures. The final policy achieved consistent pick-and-place success across randomized object and target positions.</p>
+
+<pre><code><span class="code-comment"># PPO training loop (simplified)</span>
+<span class="code-keyword">from</span> brax.training.agents.ppo <span class="code-keyword">import</span> train <span class="code-keyword">as</span> ppo_train
+
+<span class="code-func">ppo_train</span>(
+    environment=env,
+    num_timesteps=<span class="code-number">160_000_000</span>,
+    num_envs=<span class="code-number">2048</span>,
+    episode_length=<span class="code-number">200</span>,
+    learning_rate=<span class="code-number">3e-4</span>,
+    entropy_cost=<span class="code-number">1e-2</span>,
+    num_minibatches=<span class="code-number">32</span>,
+    num_updates_per_batch=<span class="code-number">4</span>,
+)
+</code></pre>
+
+    <div class="image-placeholder">Add screenshot here — W&amp;B training dashboard / success rate plot</div>
+  </div>
+</body>
+</html>
