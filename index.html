@@ -276,6 +276,33 @@
       color: inherit;
       display: block;
     }
+    .card-wip {
+      position: relative;
+      overflow: hidden;
+    }
+    .card-wip-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 0 0 14px 14px;
+    }
+    .card-wip-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 0 0 0 14px;
+    }
+    .card-wip-label {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-top: 12px;
+    }
 
     /* ── BLOG ─────────────────────────────────────────────────────── */
     .blog-list {
@@ -505,10 +532,21 @@
         </div>
       </a>
       <a href="projects/humanoid-punch.html" class="card-link">
-        <div class="card">
+        <div class="card card-wip">
           <div class="card-tag">RL &middot; MJLab &middot; Mocap Imitation</div>
           <h3>Humanoid Punch (URKL)</h3>
           <p>Trained an EngineAI T800 humanoid to throw a punch using PPO with mocap imitation in MJLab. Built a whole-body motion tracking pipeline from BVH mocap data, with multi-component exponential reward shaping over 14 tracked body segments and adaptive curriculum sampling.</p>
+          <span class="card-wip-label">In Progress</span>
+          <div class="card-wip-bar"><div class="card-wip-bar-fill" style="width:40%"></div></div>
+        </div>
+      </a>
+      <a href="projects/offline-rl-smolvla.html" class="card-link">
+        <div class="card card-wip">
+          <div class="card-tag">Offline RL &middot; smolVLA &middot; MuJoCo</div>
+          <h3>Offline RL + smolVLA</h3>
+          <p>Applying Physical Intelligence's pi0.6 RECAP offline RL framework on top of a smolVLA base model for simulated robotic manipulation in MuJoCo. Combines offline RL fine-tuning with vision-language-action pretraining to improve sample efficiency and task performance without online interaction.</p>
+          <span class="card-wip-label">In Progress</span>
+          <div class="card-wip-bar"><div class="card-wip-bar-fill" style="width:20%"></div></div>
         </div>
       </a>
     </div>
