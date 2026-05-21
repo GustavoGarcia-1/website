@@ -145,10 +145,6 @@
     <span class="code-flag">--resume</span>=<span class="code-value">true</span>
 </code></pre>
 
-    <video class="project-video" controls muted playsinline>
-      <source src="../datacollection.mp4" type="video/mp4">
-    </video>
-
     <h2>Model Comparison</h2>
     <p>Each model was trained on the same dataset using the LeRobot training pipeline. We used the existing LeRobot training code without modification, just swapping out the policy type and dataset config for each run.</p>
     <p><strong>SmolVLA</strong> is a lightweight VLA model designed for reproducibility. It uses a compact vision encoder and smaller language backbone, making it faster to train and run inference on. However for cube stacking, the model struggled to produce consistent grasping behavior. We believe the task required more representation capacity than the smaller architecture could provide.</p>
@@ -177,7 +173,7 @@
     <p>All checkpoints were uploaded to HuggingFace, and training was tracked via Weights and Biases across H100 GPUs on VESSL AI, Google Colab, and SDSC.</p>
 
     <video class="project-video" controls muted playsinline>
-      <source src="../pi05.mp4" type="video/mp4">
+      <source src="../cubestack.mp4" type="video/mp4">
     </video>
   </div>
 </body>
