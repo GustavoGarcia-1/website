@@ -10,15 +10,18 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:      #ffffff;
-      --surface: #f7f8fa;
-      --text:    #1a1a2e;
-      --muted:   #6b7280;
-      --accent:  #2563eb;
-      --border:  rgba(0,0,0,0.08);
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --text:    #e8eaf0;
+      --muted:   #8b90a0;
+      --accent:  #6b8fc4;
+      --border:  rgba(255,255,255,0.07);
     }
 
+    html { background: var(--bg); }
+
     body {
+      margin: 0;
       background: var(--bg);
       font-family: 'Inter', system-ui, sans-serif;
       color: var(--text);
@@ -76,21 +79,18 @@
       line-height: 1.8;
     }
 
-    .image-placeholder {
-      background: var(--surface);
-      border: 2px dashed var(--border);
+    .project-video {
+      width: 100%;
       border-radius: 12px;
-      padding: 60px 24px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 500;
+      border: 1px solid var(--border);
       margin: 28px 0;
+      display: block;
+      background: #000;
     }
 
     pre {
-      background: #0d1b2a;
-      border: 1px solid rgba(0,0,0,0.12);
+      background: #0d1117;
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 20px 24px;
       overflow-x: auto;
@@ -102,11 +102,12 @@
       color: #e6edf3;
       line-height: 1.7;
     }
-    .code-comment { color: #6a9955; }
     .code-keyword { color: #c586c0; }
     .code-string { color: #ce9178; }
     .code-func { color: #dcdcaa; }
     .code-number { color: #b5cea8; }
+    .code-flag { color: #9cdcfe; }
+    .code-value { color: #b5cea8; }
 
     @media (max-width: 768px) {
       .container { padding: 40px 20px 80px; }
@@ -119,83 +120,127 @@
   <div class="container">
     <a href="../index.html#projects" class="back-link">&larr; Back to portfolio</a>
 
-    <div class="project-tag">RL &middot; Mujoco &middot; PPO</div>
+    <div class="project-tag">RL &middot; MuJoCo MJX &middot; PPO</div>
     <h1>Pick and Place Robot</h1>
 
     <h2>Overview</h2>
-    <p>This project applies deep reinforcement learning to train a simulated robot arm for pick-and-place manipulation. Using MuJoCo MJX and Brax for GPU-accelerated physics simulation, I built a fully parallelized training pipeline in JAX that runs 2,048 environments simultaneously — enabling the agent to accumulate 160M+ environment steps efficiently.</p>
-    <p>The core challenge was reward engineering: designing a multi-phase shaped reward function that guides the agent through reaching, grasping, lifting, and placing — without creating reward hacking opportunities or local optima.</p>
-
-    <div class="image-placeholder">Add screenshot here — MuJoCo simulation / pick-and-place task</div>
+    <p>This project applies deep reinforcement learning to train a simulated Panda robot arm for pick and place manipulation as part of Triton Droids. Using MuJoCo MJX and Brax for GPU accelerated physics simulation, I built on a fully parallelized training pipeline in JAX that runs 2,048 environments simultaneously, accumulating 160M+ environment steps.</p>
+    <p>The core challenge was reward shaping and designing a multi phase shaped reward function that guides the agent through reaching, grasping, transporting, and placing a cube into a bin without inducing reward hacking opportunities or local optima. I started with the Brax MJX environment structure and referenced ManiSkill's PlaceSphere reward shaping approach for the phase gated reward ladder.</p>
 
     <h2>Environment Design</h2>
-    <p>The environment was built on MuJoCo MJX, which compiles physics simulation to XLA for GPU execution via JAX. This allowed running 2,048 parallel rollouts on a single GPU, dramatically accelerating data collection compared to CPU-based simulation.</p>
-    <p>The task involves a robot arm that must pick up an object from a randomized starting position and place it at a target location. Observations include joint positions, velocities, end-effector pose, object pose, and target position. Actions control joint torques directly.</p>
+    <p>The environment was built on MuJoCo MJX, which compiles physics simulation to XLA for GPU execution via JAX. This allowed running 2,048 parallel rollouts on a single GPU, dramatically accelerating data collection compared to CPU based simulation.</p>
+    <p>The task involves a Panda robot arm that must pick up a cube from a randomized starting position and place it into a bin. Observations include joint positions, velocities, end effector pose, cube pose, bin position, and relative distances between the gripper, cube, and bin. Actions control joint torques directly.</p>
+    <p>Phase transitions are detected by three boolean checks each step with grasp detection (gripper closed and near the cube), on bin detection (cube above the bin within XY tolerance), and success detection (cube placed inside the bin).</p>
 
-<pre><code><span class="code-comment"># Environment setup with MJX for GPU-accelerated simulation</span>
-<span class="code-keyword">import</span> mujoco
-<span class="code-keyword">from</span> mujoco <span class="code-keyword">import</span> mjx
-<span class="code-keyword">import</span> jax
+<pre><code><span class="code-keyword">class</span> <span class="code-func">PickAndPlace</span>(PipelineEnv):
+    <span class="code-keyword">def</span> <span class="code-func">_init_env</span>(self) -> None:
+        self.init_q = jp.array(self.sys.mj_model.keyframe(<span class="code-string">"home"</span>).qpos)
+        self.nu = self.sys.nu
+        self.nq = self.sys.nq
+        self.nv = self.sys.nv
+        self.tcp_body_id = self._safe_body_id(<span class="code-string">"panda_hand"</span>)
+        self.cube_body_id = self._safe_body_id(<span class="code-string">"cube"</span>)
+        self.bin_body_id = self._safe_body_id(<span class="code-string">"bin"</span>)
 
-<span class="code-comment"># Load model and compile to MJX</span>
-model = mujoco.<span class="code-func">MjModel.from_xml_path</span>(<span class="code-string">"robot_arm.xml"</span>)
-mjx_model = mjx.<span class="code-func">put_model</span>(model)
+    <span class="code-keyword">def</span> <span class="code-func">check_grasp</span>(self, pipeline_state: State):
+        tcp_pos = self._body_pos(pipeline_state, self.tcp_body_id)
+        cube_pos = self._body_pos(pipeline_state, self.cube_body_id)
+        left_finger = pipeline_state.q[<span class="code-number">7</span>]
+        right_finger = pipeline_state.q[<span class="code-number">8</span>]
+        gripper_closed = (left_finger < <span class="code-number">0.038</span>) & (right_finger < <span class="code-number">0.038</span>)
+        <span class="code-keyword">return</span> (jp.linalg.norm(tcp_pos - cube_pos) < <span class="code-number">0.07</span>) & gripper_closed
 
-<span class="code-comment"># Vectorize across 2048 parallel environments</span>
-batch_size = <span class="code-number">2048</span>
-rng = jax.random.<span class="code-func">split</span>(jax.random.<span class="code-func">PRNGKey</span>(<span class="code-number">0</span>), batch_size)
-batched_step = jax.<span class="code-func">vmap</span>(env_step)
-</code></pre>
+    <span class="code-keyword">def</span> <span class="code-func">check_on_bin</span>(self, pipeline_state: State):
+        cube_pos = self._body_pos(pipeline_state, self.cube_body_id)
+        bin_pos = self._body_pos(pipeline_state, self.bin_body_id)
+        xy_dist = jp.linalg.norm(cube_pos[:<span class="code-number">2</span>] - bin_pos[:<span class="code-number">2</span>])
+        <span class="code-keyword">return</span> (xy_dist < <span class="code-number">0.05</span>) & (cube_pos[<span class="code-number">2</span>] > (bin_pos[<span class="code-number">2</span>] + <span class="code-number">0.02</span>))
 
-    <div class="image-placeholder">Add screenshot here — environment visualization / observation space</div>
+    <span class="code-keyword">def</span> <span class="code-func">check_success</span>(self, pipeline_state: State):
+        cube_pos = self._body_pos(pipeline_state, self.cube_body_id)
+        bin_pos = self._body_pos(pipeline_state, self.bin_body_id)
+        xy_dist = jp.linalg.norm(cube_pos[:<span class="code-number">2</span>] - bin_pos[:<span class="code-number">2</span>])
+        <span class="code-keyword">return</span> (xy_dist < <span class="code-number">0.04</span>) & (cube_pos[<span class="code-number">2</span>] > (bin_pos[<span class="code-number">2</span>] + <span class="code-number">0.02</span>))</code></pre>
 
     <h2>Reward Shaping</h2>
-    <p>The reward function uses a multi-phase structure that guides the agent through the full pick-and-place sequence. Each phase activates based on task progress, preventing the agent from exploiting early-phase rewards while ignoring later objectives.</p>
-    <p>Key components include tanh-based distance shaping (providing smooth gradients at all distances), velocity-based stillness penalties (discouraging jerky motions during grasping), and grasp success bonuses that gate the transition to the placement phase.</p>
+    <p>The reward function uses a phase gated ladder structure where each phase has a strictly higher reward range than the previous one. This prevents the agent from exploiting early phase rewards while ignoring later objectives. The phases are  reach (0 to 2), grasp (4 to 5), stillness (6 to 7), and success (13).</p>
+    <p>The reach phase uses tanh based distance shaping to provide smooth gradients at all distances. Once the cube is grasped, the reward jumps to the grasp phase which adds a placement distance component. When the cube is above the bin, the stillness phase rewards the agent for opening the gripper and minimizing cube velocity. A successful placement gives a flat bonus of 13.</p>
 
-<pre><code><span class="code-comment"># Multi-phase shaped reward function</span>
-<span class="code-keyword">def</span> <span class="code-func">compute_reward</span>(state):
-    ee_pos = state.end_effector_pos
-    obj_pos = state.object_pos
-    target_pos = state.target_pos
+<pre><code><span class="code-keyword">def</span> <span class="code-func">_compute_reward</span>(self, pipeline_state, info):
+    tcp_pos = self._body_pos(pipeline_state, self.tcp_body_id)
+    cube_pos = self._body_pos(pipeline_state, self.cube_body_id)
+    bin_pos = self._body_pos(pipeline_state, self.bin_body_id)
 
-    <span class="code-comment"># Phase 1: Reach — tanh distance shaping</span>
-    reach_dist = jnp.<span class="code-func">linalg.norm</span>(ee_pos - obj_pos)
-    reach_reward = <span class="code-number">1.0</span> - jnp.<span class="code-func">tanh</span>(<span class="code-number">5.0</span> * reach_dist)
+    left_finger = pipeline_state.q[<span class="code-number">7</span>]
+    right_finger = pipeline_state.q[<span class="code-number">8</span>]
+    cube_lin_vel = pipeline_state.qd[<span class="code-number">9</span>:<span class="code-number">12</span>]
+    cube_ang_vel = pipeline_state.qd[<span class="code-number">12</span>:<span class="code-number">15</span>]
 
-    <span class="code-comment"># Phase 2: Grasp — stillness penalty + contact bonus</span>
-    velocity_penalty = -<span class="code-number">0.1</span> * jnp.<span class="code-func">linalg.norm</span>(state.ee_velocity)
-    grasp_bonus = <span class="code-number">2.0</span> * state.is_grasped
+    is_grasped_bool = info[<span class="code-string">"is_grasped"</span>] > <span class="code-number">0.5</span>
+    is_on_bin_bool = info[<span class="code-string">"is_on_bin"</span>] > <span class="code-number">0.5</span>
+    success_bool = info[<span class="code-string">"success"</span>] > <span class="code-number">0.5</span>
 
-    <span class="code-comment"># Phase 3: Place — distance to target (gated on grasp)</span>
-    place_dist = jnp.<span class="code-func">linalg.norm</span>(obj_pos - target_pos)
-    place_reward = state.is_grasped * (<span class="code-number">1.0</span> - jnp.<span class="code-func">tanh</span>(<span class="code-number">5.0</span> * place_dist))
+    dist_tcp_cube = jp.linalg.norm(tcp_pos - cube_pos)
+    reach_reward = <span class="code-number">2.0</span> * (<span class="code-number">1.0</span> - jp.tanh(<span class="code-number">5.0</span> * dist_tcp_cube))
 
-    <span class="code-keyword">return</span> reach_reward + velocity_penalty + grasp_bonus + place_reward
-</code></pre>
+    dist_cube_bin = jp.linalg.norm(cube_pos - bin_pos)
+    place_reward = <span class="code-number">1.0</span> - jp.tanh(<span class="code-number">5.0</span> * dist_cube_bin)
+    grasp_phase_reward = <span class="code-number">4.0</span> + place_reward
 
-    <div class="image-placeholder">Add screenshot here — reward curves / phase transitions</div>
+    gripper_openness = (left_finger + right_finger) / <span class="code-number">0.08</span>
+    ungrasp_reward = gripper_openness
 
-    <h2>Training &amp; Results</h2>
-    <p>The agent was trained using PPO (Proximal Policy Optimization) for 160M+ environment steps. Training was tracked via Weights &amp; Biases, logging episode returns, success rates, phase completion rates, and policy entropy over the course of training.</p>
-    <p>The parallelized JAX pipeline made it feasible to run large-scale hyperparameter sweeps over reward coefficients, learning rates, and network architectures. The final policy achieved consistent pick-and-place success across randomized object and target positions.</p>
+    cube_speed = jp.linalg.norm(cube_lin_vel) + jp.linalg.norm(cube_ang_vel)
+    stillness_reward = <span class="code-number">1.0</span> - jp.tanh(cube_speed)
 
-<pre><code><span class="code-comment"># PPO training loop (simplified)</span>
-<span class="code-keyword">from</span> brax.training.agents.ppo <span class="code-keyword">import</span> train <span class="code-keyword">as</span> ppo_train
+    stillness_phase_reward = <span class="code-number">6.0</span> + (ungrasp_reward + stillness_reward) / <span class="code-number">2.0</span>
+    success_reward = jp.array(<span class="code-number">13.0</span>)
 
-<span class="code-func">ppo_train</span>(
-    environment=env,
-    num_timesteps=<span class="code-number">160_000_000</span>,
-    num_envs=<span class="code-number">2048</span>,
-    episode_length=<span class="code-number">200</span>,
-    learning_rate=<span class="code-number">3e-4</span>,
-    entropy_cost=<span class="code-number">1e-2</span>,
-    num_minibatches=<span class="code-number">32</span>,
-    num_updates_per_batch=<span class="code-number">4</span>,
-)
-</code></pre>
+    reward = jp.where(
+        success_bool, success_reward,
+        jp.where(
+            is_on_bin_bool, stillness_phase_reward,
+            jp.where(is_grasped_bool, grasp_phase_reward, reach_reward)))
 
-    <div class="image-placeholder">Add screenshot here — W&amp;B training dashboard / success rate plot</div>
+    <span class="code-keyword">return</span> reward</code></pre>
+
+    <h2>Training Configuration</h2>
+    <p>The agent was trained using PPO (Proximal Policy Optimization) via Brax's training pipeline for 40M timesteps across 2,048 parallel environments. The policy and value networks are both 256x256x256 MLPs with separate observation keys for policy and privileged state.</p>
+
+<pre><code><span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-func">PickAndPlaceConfig</span>:
+
+    <span class="code-keyword">@dataclass</span>
+    <span class="code-keyword">class</span> <span class="code-func">PPOAgentConfig</span>:
+        num_timesteps: int = <span class="code-number">40_000_000</span>
+        num_evals: int = <span class="code-number">100</span>
+        episode_length: int = <span class="code-number">500</span>
+        unroll_length: int = <span class="code-number">50</span>
+        num_minibatches: int = <span class="code-number">32</span>
+        num_updates_per_batch: int = <span class="code-number">4</span>
+        discounting: float = <span class="code-number">0.99</span>
+        learning_rate: float = <span class="code-number">3e-4</span>
+        entropy_cost: float = <span class="code-number">0.02</span>
+        clipping_epsilon: float = <span class="code-number">0.2</span>
+        num_envs: int = <span class="code-number">2048</span>
+        batch_size: int = <span class="code-number">1024</span>
+
+    <span class="code-keyword">@dataclass</span>
+    <span class="code-keyword">class</span> <span class="code-func">PPONetworksConfig</span>:
+        policy_hidden_layer_sizes: Tuple[int, ...] = (<span class="code-number">256</span>, <span class="code-number">256</span>, <span class="code-number">256</span>)
+        value_hidden_layer_sizes: Tuple[int, ...] = (<span class="code-number">256</span>, <span class="code-number">256</span>, <span class="code-number">256</span>)
+        policy_obs_key: str = <span class="code-string">"state"</span>
+        value_obs_key: str = <span class="code-string">"privileged_state"</span></code></pre>
+
+    <h2>Results and Takeaways</h2>
+    <p>Training reached episode rewards of around 83 after 160M+ environment steps. However, the agent did not reliably achieve the full success reward, as you can see in the video it learned the general trajectory but failed to grasp the cube.</p>
+    <p>The reward ladder structure was broken in the early phases and did not provide a proper gate for moving onto the next phase. Shaping the rewards from the initial system I tried proved challenging, the gated structure I switched to looks more promising than before.</p>
+    <p>Training was tracked via Weights and Biases, with checkpoints saved throughout. The parallelized JAX pipeline made it feasible to run the full 40M timestep training in a reasonable amount of time on a single GPU.</p>
+    <p>While the agent struggled, I gained exposure to simulators and reinforcement learning techniques. I'm excited to utilize these skills in future projects.</p>
+
+    <video class="project-video" controls muted playsinline>
+      <source src="../task3final.mp4" type="video/mp4">
+    </video>
   </div>
 </body>
 </html>

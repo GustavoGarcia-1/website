@@ -10,15 +10,18 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:      #ffffff;
-      --surface: #f7f8fa;
-      --text:    #1a1a2e;
-      --muted:   #6b7280;
-      --accent:  #2563eb;
-      --border:  rgba(0,0,0,0.08);
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --text:    #e8eaf0;
+      --muted:   #8b90a0;
+      --accent:  #6b8fc4;
+      --border:  rgba(255,255,255,0.07);
     }
 
+    html { background: var(--bg); }
+
     body {
+      margin: 0;
       background: var(--bg);
       font-family: 'Inter', system-ui, sans-serif;
       color: var(--text);
@@ -76,21 +79,18 @@
       line-height: 1.8;
     }
 
-    .image-placeholder {
-      background: var(--surface);
-      border: 2px dashed var(--border);
+    .project-video {
+      width: 100%;
       border-radius: 12px;
-      padding: 60px 24px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 500;
+      border: 1px solid var(--border);
       margin: 28px 0;
+      display: block;
+      background: #000;
     }
 
     pre {
-      background: #0d1b2a;
-      border: 1px solid rgba(0,0,0,0.12);
+      background: #0d1117;
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 20px 24px;
       overflow-x: auto;
@@ -102,10 +102,9 @@
       color: #e6edf3;
       line-height: 1.7;
     }
-    .code-comment { color: #6a9955; }
-    .code-keyword { color: #c586c0; }
+    .code-flag { color: #9cdcfe; }
     .code-string { color: #ce9178; }
-    .code-func { color: #dcdcaa; }
+    .code-value { color: #b5cea8; }
 
     @media (max-width: 768px) {
       .container { padding: 40px 20px 80px; }
@@ -122,52 +121,64 @@
     <h1>Cube Stacking Robot</h1>
 
     <h2>Overview</h2>
-    <p>This project benchmarks multiple vision-language-action architectures on a cube stacking task using the so101 robotic arms. I trained and compared three models — smolVLA, ACT (Action Chunking with Transformers), and &pi;0.5 — on a shared teleoperation dataset to understand their relative strengths and failure modes for precise pick-and-place manipulation.</p>
-    <p>Training was distributed across H100 GPUs via VESSL AI, Google Colab, and the San Diego Supercomputer Center (SDCC). All checkpoints were uploaded to HuggingFace for reproducibility and community access.</p>
+    <p>This project tests multiple vision language action models on a cube stacking task using the so101 robotic arms as part of Triton Droids. I trained and compared three models, smolVLA, ACT (Action Chunking with Transformers), and &pi;0.5, on a shared teleoperation dataset to understand their relative strengths and failure modes for precise pick and place manipulation.</p>
+    <p>After comparing all three, &pi;0.5 performed the best,smolVLA had trouble with the complexity of the task as I believe it exceeded what the smaller model could handle. ACT showed promise and we felt it would have performed well with more tuning, but &pi;0.5 performed the best</p>
+    <p>Training was distributed across H100 GPUs via VESSL AI, Google Colab, and the San Diego Supercomputer Center. All checkpoints were uploaded to HuggingFace for reproducibility.</p>
 
-    <div class="image-placeholder">Add screenshot here — cube stacking demo / robot setup</div>
+    <h2>Data Collection</h2>
+    <p>Hours of teleoperation data were collected on the so101 arms, with operators performing cube stacking sequences of varying difficulty. Each episode was recorded with synchronized multi view cameras (wrist and eagle eye) to provide rich visual context for the policy. The setup entirely based on the LeRobot recording framework.</p>
 
-    <h2>Data Collection &amp; Preprocessing</h2>
-    <p>Hours of teleoperation data were collected on the so101 arms, with the operator performing cube stacking sequences of varying difficulty (single stack, multi-stack, different starting positions). Each episode was recorded with synchronized multi-view cameras to provide both top-down and wrist-level perspectives.</p>
-    <p>Data was preprocessed into the LeRobot dataset format with consistent frame rates and action representations across all training runs to ensure fair comparison between model architectures.</p>
-
-<pre><code><span class="code-comment"># Example: Loading a LeRobot dataset for training</span>
-<span class="code-keyword">from</span> lerobot.common.datasets <span class="code-keyword">import</span> LeRobotDataset
-
-dataset = <span class="code-func">LeRobotDataset</span>(
-    repo_id=<span class="code-string">"gustavo/cube-stacking-so101"</span>,
-    split=<span class="code-string">"train"</span>,
-)
-<span class="code-keyword">print</span>(f<span class="code-string">"Episodes: {dataset.num_episodes}"</span>)
-<span class="code-keyword">print</span>(f<span class="code-string">"Total frames: {len(dataset)}"</span>)
+<pre><code>lerobot-record \
+    <span class="code-flag">--robot.type</span>=<span class="code-string">so101_follower</span> \
+    <span class="code-flag">--robot.port</span>=<span class="code-string">/dev/tty.usbmodem5A7A0570191</span> \
+    <span class="code-flag">--robot.id</span>=<span class="code-string">triton_follower</span> \
+    <span class="code-flag">--robot.cameras</span>=<span class="code-string">"{ front: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30, fourcc: MJPG},
+      side: {type: opencv, index_or_path: 1, width: 640, height: 480, fps: 30, fourcc: MJPG}}"</span> \
+    <span class="code-flag">--teleop.type</span>=<span class="code-string">so101_leader</span> \
+    <span class="code-flag">--teleop.port</span>=<span class="code-string">/dev/tty.usbmodem5AB01824781</span> \
+    <span class="code-flag">--teleop.id</span>=<span class="code-string">triton_leader</span> \
+    <span class="code-flag">--display_data</span>=<span class="code-value">true</span> \
+    <span class="code-flag">--dataset.repo_id</span>=<span class="code-string">Gueso/cube_stacking</span> \
+    <span class="code-flag">--dataset.single_task</span>=<span class="code-string">"Pick up the cube and stack it on top of the other cube."</span> \
+    <span class="code-flag">--dataset.episode_time_s</span>=<span class="code-value">20</span> \
+    <span class="code-flag">--dataset.reset_time_s</span>=<span class="code-value">15</span> \
+    <span class="code-flag">--resume</span>=<span class="code-value">true</span>
 </code></pre>
 
-    <div class="image-placeholder">Add screenshot here — dataset samples / camera perspectives</div>
+    <video class="project-video" controls muted playsinline>
+      <source src="../datacollection.mp4" type="video/mp4">
+    </video>
 
     <h2>Model Comparison</h2>
-    <p>Each model was trained on the same dataset with architecture-specific hyperparameters tuned on a validation split:</p>
-    <p><strong>smolVLA</strong> — A lightweight VLA model designed for efficiency. It uses a compact vision encoder and smaller language backbone, making it faster to train and run inference on but potentially sacrificing representation capacity.</p>
-    <p><strong>ACT (Action Chunking with Transformers)</strong> — Predicts chunks of future actions using a CVAE encoder-decoder architecture. ACT's action chunking approach helps with temporal consistency, reducing the compounding error problem in sequential prediction.</p>
-    <p><strong>&pi;0.5</strong> — Physical Intelligence's flow matching policy that generates continuous action trajectories. Its flow-based formulation allows for smooth, precise motions well-suited to stacking tasks.</p>
+    <p>Each model was trained on the same dataset using the LeRobot training pipeline. We used the existing LeRobot training code without modification, just swapping out the policy type and dataset config for each run.</p>
+    <p><strong>SmolVLA</strong> is a lightweight VLA model designed for reproducibility. It uses a compact vision encoder and smaller language backbone, making it faster to train and run inference on. However for cube stacking, the model struggled to produce consistent grasping behavior. We believe the task required more representation capacity than the smaller architecture could provide.</p>
+    <p><strong>ACT (Action Chunking with Transformers)</strong> predicts chunks of future actions using a CVAE encoder decoder architecture. ACT's action chunking approach helps with temporal consistency, reducing compounding error in sequential prediction. We had some trouble getting it running but felt it would perform well given more data and less cube position variation.</p>
+    <p><strong>&pi;0.5</strong> is Physical Intelligence's flow matching policy that generates continuous action trajectories. It performed the best of the three models on this task, producing smooth and precise motions with the only successful completitons out of the three.</p>
 
-<pre><code><span class="code-comment"># Example: Training ACT with LeRobot</span>
-python lerobot/scripts/train.py \
-    policy=act \
-    env=so101_cube_stacking \
-    dataset_repo_id=<span class="code-string">gustavo/cube-stacking-so101</span> \
-    training.num_epochs=<span class="code-string">300</span> \
-    training.batch_size=<span class="code-string">64</span> \
-    wandb.enable=<span class="code-string">true</span>
+<pre><code>python lerobot_train.py \
+    <span class="code-flag">--dataset.repo_id</span>=<span class="code-string">Gueso/cube_stacking</span> \
+    <span class="code-flag">--policy.type</span>=<span class="code-string">pi05</span> \
+    <span class="code-flag">--policy.pretrained_path</span>=<span class="code-string">lerobot/pi05_base</span> \
+    <span class="code-flag">--policy.normalization_mapping</span>=<span class="code-string">'{"ACTION": "MEAN_STD", "STATE": "MEAN_STD", "VISUAL": "IDENTITY"}'</span> \
+    <span class="code-flag">--policy.compile_model</span>=<span class="code-value">true</span> \
+    <span class="code-flag">--policy.gradient_checkpointing</span>=<span class="code-value">true</span> \
+    <span class="code-flag">--policy.dtype</span>=<span class="code-string">bfloat16</span> \
+    <span class="code-flag">--policy.device</span>=<span class="code-string">cuda</span> \
+    <span class="code-flag">--policy.repo_id</span>=<span class="code-string">Gueso/pi05_cubestacking</span> \
+    <span class="code-flag">--output_dir</span>=<span class="code-string">./outputs/pi05_cubestacking</span> \
+    <span class="code-flag">--batch_size</span>=<span class="code-value">16</span> \
+    <span class="code-flag">--steps</span>=<span class="code-value">50000</span> \
+    <span class="code-flag">--save_freq</span>=<span class="code-value">2000</span>
 </code></pre>
 
-    <div class="image-placeholder">Add screenshot here — training curves comparison across models</div>
+    <h2>Results and Takeaways</h2>
+    <p>&pi;0.5 was the best model for this task, completing the full stacking sequence. However, it did not consistently complete the task it had a success rate of ~10%, Smolvla 0%, ACT 0%. SmolVLA struggled with grasping accuracy and jerky motions. ACT and Smolvla failed because of the cube position variation in our data.</p>
+    <p>Larger models like &pi;0.5 can handle the complexity of multi step pick and place, and are able to generalize well with different cube positions. While smaller models may need significantly more data or a simpler task definition to succeed.</p>
+    <p>All checkpoints were uploaded to HuggingFace, and training was tracked via Weights and Biases across H100 GPUs on VESSL AI, Google Colab, and SDSC.</p>
 
-    <h2>Training Infrastructure &amp; Results</h2>
-    <p>Training was distributed across multiple compute platforms. VESSL AI and SDCC provided H100 GPU access for the larger models (&pi;0.5), while Google Colab was used for lighter experiments and ablations with smolVLA and ACT. All runs were tracked with Weights &amp; Biases for consistent metric comparison.</p>
-    <p>Each model's checkpoints were uploaded to HuggingFace, making it straightforward to load and evaluate any checkpoint for real-world rollouts on the so101 arms.</p>
-    <p>The comparison revealed trade-offs between model size, training compute, and task success rate that informed our team's architecture choices for future manipulation tasks at Triton Droids.</p>
-
-    <div class="image-placeholder">Add screenshot here — results table / success rate comparison</div>
+    <video class="project-video" controls muted playsinline>
+      <source src="../pi05.mp4" type="video/mp4">
+    </video>
   </div>
 </body>
 </html>

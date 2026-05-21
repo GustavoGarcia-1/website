@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Humanoid Punch (URKL) – Gustavo Garcia</title>
+  <title>Humanoid Fighting – Gustavo Garcia</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:      #ffffff;
-      --surface: #f7f8fa;
-      --text:    #1a1a2e;
-      --muted:   #6b7280;
-      --accent:  #2563eb;
-      --border:  rgba(0,0,0,0.08);
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --text:    #e8eaf0;
+      --muted:   #8b90a0;
+      --accent:  #6b8fc4;
+      --border:  rgba(255,255,255,0.07);
     }
 
+    html { background: var(--bg); }
+
     body {
+      margin: 0;
       background: var(--bg);
       font-family: 'Inter', system-ui, sans-serif;
       color: var(--text);
@@ -76,16 +79,15 @@
       line-height: 1.8;
     }
 
-    .image-placeholder {
-      background: var(--surface);
-      border: 2px dashed var(--border);
-      border-radius: 12px;
-      padding: 60px 24px;
-      text-align: center;
+    ul {
+      padding-left: 20px;
+      margin-bottom: 20px;
+    }
+    li {
+      font-size: 15px;
       color: var(--muted);
-      font-size: 14px;
-      font-weight: 500;
-      margin: 28px 0;
+      line-height: 1.8;
+      margin-bottom: 6px;
     }
 
     .video-wrap {
@@ -101,8 +103,8 @@
     }
 
     pre {
-      background: #0d1b2a;
-      border: 1px solid rgba(0,0,0,0.12);
+      background: #0d1117;
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 20px 24px;
       overflow-x: auto;
@@ -114,7 +116,6 @@
       color: #e6edf3;
       line-height: 1.7;
     }
-    .code-comment { color: #6a9955; }
     .code-keyword { color: #c586c0; }
     .code-string { color: #ce9178; }
     .code-func { color: #dcdcaa; }
@@ -154,13 +155,13 @@
   <div class="container">
     <a href="../index.html#projects" class="back-link">&larr; Back to portfolio</a>
 
-    <div class="project-tag">RL &middot; PPO &middot;
-    <h1>Fighing Robot </h1>
+    <div class="project-tag">RL &middot; MJLab &middot; PPO</div>
+    <h1>Humanoid Fighting</h1>
     <div class="wip-badge">In Progress</div>
 
     <h2>Overview</h2>
-    <p>This project is part of a humanoid robot fighting league ran by Engine AI. The goal is to train the T800 humanoid to perform fighting combinations, in preperation for real world deployment against other robots. The pipeline were starting with converts real boxing motion capture data into joint trajectories, then uses PPO to train a policy that references the human performing the motion.</p>
-    <p>The system is built on MJLab, a MuJoCo based RL framework with RSL RL as the training backend. The T800 model has 30 DOFs tracked across 14 body segments, with self collision detection and adaptive curriculum sampling to handle the difficulty of violent, asymmetric motions like punches.</p>
+    <p>This project is part of a humanoid robot fighting league run by Engine AI. The goal is to train the EngineAI T800 humanoid to perform fighting combinations in preparation for real world deployment against other robots. The pipeline converts real boxing motion capture data into joint trajectories, then uses PPO to train a policy that imitates the human performing the motion.</p>
+    <p>The system is built on MJLab, a MuJoCo based RL framework with RSL RL as the training backend. The T800 model has 25 joints tracked across 14 body segments, with self collision detection to handle violent, asymmetric motions like punches.</p>
 
     <div class="video-wrap">
       <video controls loop muted playsinline>
@@ -169,92 +170,91 @@
       </video>
     </div>
 
-    <h2>Mocap Data &amp; Motion Loading</h2>
-    <p>Boxing motion capture data is converted from NPY format into NPZ files containing joint positions, joint velocities, body positions, orientations, and linear/angular velocities for every tracked body segment at each timestep. The <code>MotionLoader</code> class indexes into this data at runtime, mapping mocap body segments to the T800's kinematic tree.</p>
+    <h2>Mocap Data and Motion Conversion</h2>
+    <p>We were given boxing motion capture data as NPY files containing base position, base quaternion, and joint angles for the T800's 25 joints. To use this data in MJLab's tracking pipeline, it needed to be converted to NPZ format with full body state information including body positions, orientations, and velocities for every tracked link.</p>
+    <p>We used the conversion script provided under the URKL official repository. The script parses the T800 URDF to build the kinematic tree, resamples frames from 30Hz to 50Hz using SLERP for quaternion interpolation, runs forward kinematics to compute world space positions and orientations for all 26 body links, then derives linear and angular velocities via finite differences.</p>
 
-    <div class="file-label">mjlab/src/mjlab/tasks/tracking/mdp/commands.py</div>
-<pre><code><span class="code-keyword">class</span> <span class="code-type">MotionLoader</span>:
-  <span class="code-keyword">def</span> <span class="code-func">__init__</span>(
-    <span class="code-param">self</span>, <span class="code-param">motion_file</span>: str, <span class="code-param">body_indexes</span>: torch.Tensor, <span class="code-param">device</span>: str = <span class="code-string">"cpu"</span>
-  ) -> <span class="code-keyword">None</span>:
-    data = np.<span class="code-func">load</span>(motion_file)
-    <span class="code-param">self</span>.joint_pos = torch.<span class="code-func">tensor</span>(data[<span class="code-string">"joint_pos"</span>], dtype=torch.float32, device=device)
-    <span class="code-param">self</span>.joint_vel = torch.<span class="code-func">tensor</span>(data[<span class="code-string">"joint_vel"</span>], dtype=torch.float32, device=device)
-    <span class="code-param">self</span>._body_pos_w = torch.<span class="code-func">tensor</span>(
-      data[<span class="code-string">"body_pos_w"</span>], dtype=torch.float32, device=device
-    )
-    <span class="code-param">self</span>._body_quat_w = torch.<span class="code-func">tensor</span>(
-      data[<span class="code-string">"body_quat_w"</span>], dtype=torch.float32, device=device
-    )
-    <span class="code-param">self</span>._body_lin_vel_w = torch.<span class="code-func">tensor</span>(
-      data[<span class="code-string">"body_lin_vel_w"</span>], dtype=torch.float32, device=device
-    )
-    <span class="code-param">self</span>._body_ang_vel_w = torch.<span class="code-func">tensor</span>(
-      data[<span class="code-string">"body_ang_vel_w"</span>], dtype=torch.float32, device=device
-    )
-    <span class="code-param">self</span>._body_indexes = body_indexes
-    <span class="code-param">self</span>.body_pos_w = <span class="code-param">self</span>._body_pos_w[:, <span class="code-param">self</span>._body_indexes]
-    <span class="code-param">self</span>.body_quat_w = <span class="code-param">self</span>._body_quat_w[:, <span class="code-param">self</span>._body_indexes]
-    <span class="code-param">self</span>.body_lin_vel_w = <span class="code-param">self</span>._body_lin_vel_w[:, <span class="code-param">self</span>._body_indexes]
-    <span class="code-param">self</span>.body_ang_vel_w = <span class="code-param">self</span>._body_ang_vel_w[:, <span class="code-param">self</span>._body_indexes]
-    <span class="code-param">self</span>.time_step_total = <span class="code-param">self</span>.joint_pos.shape[<span class="code-number">0</span>]
+    <div class="file-label">urkl_official/scripts/npy_to_npz.py</div>
+<pre><code><span class="code-keyword">def</span> <span class="code-func">forward_kinematics</span>(
+    <span class="code-param">base_pos</span>: np.ndarray, <span class="code-param">base_quat</span>: np.ndarray,
+    <span class="code-param">joint_pos</span>: np.ndarray, <span class="code-param">incoming_joints</span>: dict[str, JointSpec]
+) -> tuple[np.ndarray, np.ndarray]:
+    frames = joint_pos.shape[<span class="code-number">0</span>]
+    link_positions = np.zeros((frames, len(AVAILABLE_LINK_NAMES), <span class="code-number">3</span>), dtype=np.float32)
+    link_quaternions = np.zeros((frames, len(AVAILABLE_LINK_NAMES), <span class="code-number">4</span>), dtype=np.float32)
+    joint_index = {name: idx <span class="code-keyword">for</span> idx, name <span class="code-keyword">in</span> enumerate(T800_DFS_JOINT_NAMES)}
+
+    <span class="code-keyword">for</span> frame_idx <span class="code-keyword">in</span> range(frames):
+        cache: dict[str, np.ndarray] = {
+            <span class="code-string">"LINK_BASE"</span>: <span class="code-func">make_transform</span>(
+                <span class="code-func">quat_to_matrix</span>(base_quat[frame_idx]), base_pos[frame_idx]
+            )
+        }
+
+        <span class="code-keyword">def</span> <span class="code-func">world_transform</span>(<span class="code-param">link_name</span>: str) -> np.ndarray:
+            <span class="code-keyword">if</span> link_name <span class="code-keyword">in</span> cache:
+                <span class="code-keyword">return</span> cache[link_name]
+            spec = incoming_joints[link_name]
+            parent_tf = <span class="code-func">world_transform</span>(spec.parent_link)
+            angle = float(joint_pos[frame_idx, joint_index[spec.name]]) \
+                <span class="code-keyword">if</span> spec.name <span class="code-keyword">in</span> joint_index <span class="code-keyword">else</span> <span class="code-number">0.0</span>
+            cache[link_name] = <span class="code-func">apply_joint</span>(parent_tf, spec, angle)
+            <span class="code-keyword">return</span> cache[link_name]
+
+        <span class="code-keyword">for</span> link_idx, link_name <span class="code-keyword">in</span> enumerate(AVAILABLE_LINK_NAMES):
+            tf = <span class="code-func">world_transform</span>(link_name)
+            link_positions[frame_idx, link_idx] = tf[:<span class="code-number">3</span>, <span class="code-number">3</span>]
+            link_quaternions[frame_idx, link_idx] = <span class="code-func">matrix_to_quat_wxyz</span>(tf[:<span class="code-number">3</span>, :<span class="code-number">3</span>])
+
+    <span class="code-keyword">return</span> link_positions, link_quaternions
 </code></pre>
 
-    <div class="image-placeholder">Add screenshot here — BVH mocap visualization / T800 joint mapping</div>
-
     <h2>Reward Shaping</h2>
-    <p>The reward function uses multiple exponential-error components to track the mocap reference across the full body. Each term computes a Gaussian kernel over the squared error between the reference and robot state — providing smooth gradients everywhere, even far from the target. Separate terms handle anchor body position/orientation, relative body positions, and linear/angular velocities. A self-collision penalty discourages the robot from intersecting its own limbs during the punch.</p>
+    <p>The reward functions come from MJLab's existing G1 tracking implementation, which we reused for the T800. Each reward term computes an exponential Gaussian kernel over the squared error between the reference motion and the robot's current state, providing smooth gradients everywhere even far from the target.</p>
+    <p>There are six tracking terms: anchor body position and orientation (weighted at 0.5 each), relative body position and orientation across all 14 tracked segments (weighted at 1.0 each), and linear and angular velocity matching (weighted at 1.0 each). On top of those, an action rate penalty discourages jerky motions, a joint limit penalty keeps joints in bounds, and a self collision cost penalizes the robot from intersecting its own limbs.</p>
 
     <div class="file-label">mjlab/src/mjlab/tasks/tracking/mdp/rewards.py</div>
 <pre><code><span class="code-keyword">def</span> <span class="code-func">motion_global_anchor_position_error_exp</span>(
-  <span class="code-param">env</span>: <span class="code-type">ManagerBasedRlEnv</span>, <span class="code-param">command_name</span>: str, <span class="code-param">std</span>: float
+    <span class="code-param">env</span>: <span class="code-type">ManagerBasedRlEnv</span>, <span class="code-param">command_name</span>: str, <span class="code-param">std</span>: float
 ) -> torch.Tensor:
-  command = <span class="code-func">cast</span>(<span class="code-type">MotionCommand</span>, env.command_manager.<span class="code-func">get_term</span>(command_name))
-  error = torch.<span class="code-func">sum</span>(
-    torch.<span class="code-func">square</span>(command.anchor_pos_w - command.robot_anchor_pos_w), dim=-<span class="code-number">1</span>
-  )
-  <span class="code-keyword">return</span> torch.<span class="code-func">exp</span>(-error / std**<span class="code-number">2</span>)
+    command = <span class="code-func">cast</span>(<span class="code-type">MotionCommand</span>, env.command_manager.<span class="code-func">get_term</span>(command_name))
+    error = torch.<span class="code-func">sum</span>(
+        torch.<span class="code-func">square</span>(command.anchor_pos_w - command.robot_anchor_pos_w), dim=-<span class="code-number">1</span>
+    )
+    <span class="code-keyword">return</span> torch.<span class="code-func">exp</span>(-error / std**<span class="code-number">2</span>)
 
 
 <span class="code-keyword">def</span> <span class="code-func">motion_relative_body_position_error_exp</span>(
-  <span class="code-param">env</span>: <span class="code-type">ManagerBasedRlEnv</span>,
-  <span class="code-param">command_name</span>: str,
-  <span class="code-param">std</span>: float,
-  <span class="code-param">body_names</span>: tuple[str, ...] | <span class="code-keyword">None</span> = <span class="code-keyword">None</span>,
+    <span class="code-param">env</span>: <span class="code-type">ManagerBasedRlEnv</span>, <span class="code-param">command_name</span>: str,
+    <span class="code-param">std</span>: float, <span class="code-param">body_names</span>: tuple[str, ...] | <span class="code-keyword">None</span> = <span class="code-keyword">None</span>,
 ) -> torch.Tensor:
-  command = <span class="code-func">cast</span>(<span class="code-type">MotionCommand</span>, env.command_manager.<span class="code-func">get_term</span>(command_name))
-  body_indexes = <span class="code-func">_get_body_indexes</span>(command, body_names)
-  error = torch.<span class="code-func">sum</span>(
-    torch.<span class="code-func">square</span>(
-      command.body_pos_relative_w[:, body_indexes]
-      - command.robot_body_pos_w[:, body_indexes]
-    ),
-    dim=-<span class="code-number">1</span>,
-  )
-  <span class="code-keyword">return</span> torch.<span class="code-func">exp</span>(-error.<span class="code-func">mean</span>(-<span class="code-number">1</span>) / std**<span class="code-number">2</span>)
+    command = <span class="code-func">cast</span>(<span class="code-type">MotionCommand</span>, env.command_manager.<span class="code-func">get_term</span>(command_name))
+    body_indexes = <span class="code-func">_get_body_indexes</span>(command, body_names)
+    error = torch.<span class="code-func">sum</span>(
+        torch.<span class="code-func">square</span>(
+            command.body_pos_relative_w[:, body_indexes]
+            - command.robot_body_pos_w[:, body_indexes]
+        ), dim=-<span class="code-number">1</span>,
+    )
+    <span class="code-keyword">return</span> torch.<span class="code-func">exp</span>(-error.<span class="code-func">mean</span>(-<span class="code-number">1</span>) / std**<span class="code-number">2</span>)
 
 
 <span class="code-keyword">def</span> <span class="code-func">self_collision_cost</span>(
-  <span class="code-param">env</span>: <span class="code-type">ManagerBasedRlEnv</span>,
-  <span class="code-param">sensor_name</span>: str,
-  <span class="code-param">force_threshold</span>: float = <span class="code-number">10.0</span>,
+    <span class="code-param">env</span>: <span class="code-type">ManagerBasedRlEnv</span>, <span class="code-param">sensor_name</span>: str,
+    <span class="code-param">force_threshold</span>: float = <span class="code-number">10.0</span>,
 ) -> torch.Tensor:
-  <span class="code-comment">"""Penalize self-collisions.</span>
-<span class="code-comment"></span>
-<span class="code-comment">  When the sensor provides force history (from history_length > 0),</span>
-<span class="code-comment">  counts substeps where any contact force exceeds force_threshold.</span>
-<span class="code-comment">  """</span>
-  sensor: <span class="code-type">ContactSensor</span> = env.scene[sensor_name]
-  data = sensor.data
-  <span class="code-keyword">if</span> data.force_history <span class="code-keyword">is not None</span>:
-    force_mag = torch.<span class="code-func">norm</span>(data.force_history, dim=-<span class="code-number">1</span>)  <span class="code-comment"># [B, N, H]</span>
-    hit = (force_mag > force_threshold).<span class="code-func">any</span>(dim=<span class="code-number">1</span>)      <span class="code-comment"># [B, H]</span>
-    <span class="code-keyword">return</span> hit.<span class="code-func">sum</span>(dim=-<span class="code-number">1</span>).<span class="code-func">float</span>()                     <span class="code-comment"># [B]</span>
-  <span class="code-keyword">return</span> data.found.<span class="code-func">squeeze</span>(-<span class="code-number">1</span>)
+    sensor: <span class="code-type">ContactSensor</span> = env.scene[sensor_name]
+    data = sensor.data
+    <span class="code-keyword">if</span> data.force_history <span class="code-keyword">is not None</span>:
+        force_mag = torch.<span class="code-func">norm</span>(data.force_history, dim=-<span class="code-number">1</span>)
+        hit = (force_mag > force_threshold).<span class="code-func">any</span>(dim=<span class="code-number">1</span>)
+        <span class="code-keyword">return</span> hit.<span class="code-func">sum</span>(dim=-<span class="code-number">1</span>).<span class="code-func">float</span>()
+    <span class="code-keyword">return</span> data.found.<span class="code-func">squeeze</span>(-<span class="code-number">1</span>)
 </code></pre>
 
-    <h2>PPO Configuration &amp; Training</h2>
-    <p>Training uses PPO via RSL-RL with a 3-layer MLP (512 &rarr; 256 &rarr; 128) for both actor and critic. The policy uses a Gaussian action distribution with adaptive KL-based learning rate scheduling. The agent trains for up to 30,000 iterations with 24 environment steps per rollout, with checkpoints saved every 500 iterations. Training is tracked via Weights &amp; Biases.</p>
+    <h2>PPO Configuration and Training</h2>
+    <p>Training uses PPO via RSL RL with a 3 layer MLP (512, 256, 128) for both actor and critic using ELU activations and observation normalization. The policy outputs a Gaussian action distribution with adaptive KL based learning rate scheduling that targets a KL divergence of 0.01. The agent trains for up to 30,000 iterations with 24 environment steps per rollout, checkpointing every 500 iterations.</p>
+    <p>The T800 config was adapted from MJLab's existing G1 tracking setup. The main changes were swapping the robot model, remapping joint and body names to the T800's kinematic tree, configuring the self collision sensor for the T800's link structure, and adjusting the anchor body to LINK_WAIST_YAW.</p>
 
     <div class="file-label">mjlab/src/mjlab/tasks/tracking/config/t800/rl_cfg.py</div>
 <pre><code><span class="code-keyword">def</span> <span class="code-func">engineai_t800_tracking_ppo_runner_cfg</span>() -> <span class="code-type">RslRlOnPolicyRunnerCfg</span>:
@@ -295,8 +295,8 @@
     )
 </code></pre>
 
-    <h2>T800 Environment &amp; Body Tracking</h2>
-    <p>The environment tracks 14 body segments on the T800 humanoid — from the base link through hips, knees, ankles, shoulders, and elbows on both sides, anchored at the waist. Self-collision detection uses a contact sensor with 4-step force history to catch collisions during fast motions. Domain randomization includes base COM perturbation and joint position noise.</p>
+    <h2>T800 Environment and Body Tracking</h2>
+    <p>The environment tracks 14 body segments on the T800: the base link, left and right hips/knees/ankles, the waist, and left and right shoulders/elbows. The anchor body is set to LINK_WAIST_YAW. Self collision detection uses a contact sensor with 4 step force history to catch collisions during fast motions. Domain randomization includes base center of mass perturbation and encoder bias noise.</p>
 
     <div class="file-label">mjlab/src/mjlab/tasks/tracking/config/t800/env_cfgs.py</div>
 <pre><code><span class="code-keyword">def</span> <span class="code-func">engineai_t800_flat_tracking_env_cfg</span>(
@@ -327,45 +327,16 @@
     )
 </code></pre>
 
-    <h2>Adaptive Curriculum Sampling</h2>
-    <p>One of the harder parts of training a punch motion is that the policy tends to fail at specific points in the trajectory — usually during the fast arm extension. The adaptive sampling system tracks which timestep bins the policy fails at most often, then oversamples those regions during training. This is implemented as a convolved failure histogram with exponential smoothing, so the curriculum shifts focus to the hardest parts of the motion automatically.</p>
-
-    <div class="file-label">mjlab/src/mjlab/tasks/tracking/mdp/commands.py</div>
-<pre><code><span class="code-keyword">def</span> <span class="code-func">_adaptive_sampling</span>(<span class="code-param">self</span>, <span class="code-param">env_ids</span>: torch.Tensor):
-    episode_failed = <span class="code-param">self</span>._env.termination_manager.terminated[env_ids]
-    <span class="code-keyword">if</span> torch.<span class="code-func">any</span>(episode_failed):
-      current_bin_index = torch.<span class="code-func">clamp</span>(
-        (<span class="code-param">self</span>.time_steps * <span class="code-param">self</span>.bin_count) // <span class="code-func">max</span>(<span class="code-param">self</span>.motion.time_step_total, <span class="code-number">1</span>),
-        <span class="code-number">0</span>, <span class="code-param">self</span>.bin_count - <span class="code-number">1</span>,
-      )
-      fail_bins = current_bin_index[env_ids][episode_failed]
-      <span class="code-param">self</span>._current_bin_failed[:] = torch.<span class="code-func">bincount</span>(fail_bins, minlength=<span class="code-param">self</span>.bin_count)
-
-    <span class="code-comment"># Smooth failure histogram with convolution kernel</span>
-    sampling_probabilities = (
-      <span class="code-param">self</span>.bin_failed_count + <span class="code-param">self</span>.cfg.adaptive_uniform_ratio / <span class="code-func">float</span>(<span class="code-param">self</span>.bin_count)
-    )
-    sampling_probabilities = torch.nn.functional.<span class="code-func">pad</span>(
-      sampling_probabilities.<span class="code-func">unsqueeze</span>(<span class="code-number">0</span>).<span class="code-func">unsqueeze</span>(<span class="code-number">0</span>),
-      (<span class="code-number">0</span>, <span class="code-param">self</span>.cfg.adaptive_kernel_size - <span class="code-number">1</span>),
-      mode=<span class="code-string">"replicate"</span>,
-    )
-    sampling_probabilities = torch.nn.functional.<span class="code-func">conv1d</span>(
-      sampling_probabilities, <span class="code-param">self</span>.kernel.<span class="code-func">view</span>(<span class="code-number">1</span>, <span class="code-number">1</span>, -<span class="code-number">1</span>)
-    ).<span class="code-func">view</span>(-<span class="code-number">1</span>)
-    sampling_probabilities = sampling_probabilities / sampling_probabilities.<span class="code-func">sum</span>()
-
-    sampled_bins = torch.<span class="code-func">multinomial</span>(
-      sampling_probabilities, <span class="code-func">len</span>(env_ids), replacement=<span class="code-keyword">True</span>
-    )
-    <span class="code-param">self</span>.time_steps[env_ids] = (
-      (sampled_bins + <span class="code-func">sample_uniform</span>(<span class="code-number">0.0</span>, <span class="code-number">1.0</span>, (<span class="code-func">len</span>(env_ids),), device=<span class="code-param">self</span>.device))
-      / <span class="code-param">self</span>.bin_count
-      * (<span class="code-param">self</span>.motion.time_step_total - <span class="code-number">1</span>)
-    ).<span class="code-func">long</span>()
-</code></pre>
-
-    <div class="image-placeholder">Add screenshot here — W&amp;B training dashboard / tracking error curves</div>
+    <h2>Future Work</h2>
+    <p>The current policy can imitate the punch motion but there is still a lot of work to do before competition readiness. I've done most of the work so far, I am pleased with the progress and excited for what my teammates will contribute. Here is what we are working on next:</p>
+    <ul>
+      <li>Training on additional fighting motions from the URKL dataset including kicks and combos</li>
+      <li>Tuning reward weights to improve tracking quality on fast asymmetric motions where the arms and legs move in opposite directions</li>
+      <li>Curating our own datasets to get more diverse training examples and better models</li>
+      <li>Getting sim to real transfer working on the physical T800 hardware</li>
+      <li>Adding an opponent agent and training reactive fighting behaviors rather than just replaying fixed motion clips</li>
+      <li>Winning the competition prize of a 1 million dollar gold belt</li>
+    </ul>
   </div>
 </body>
 </html>

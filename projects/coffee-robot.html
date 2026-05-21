@@ -10,15 +10,18 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:      #ffffff;
-      --surface: #f7f8fa;
-      --text:    #1a1a2e;
-      --muted:   #6b7280;
-      --accent:  #2563eb;
-      --border:  rgba(0,0,0,0.08);
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --text:    #e8eaf0;
+      --muted:   #8b90a0;
+      --accent:  #6b8fc4;
+      --border:  rgba(255,255,255,0.07);
     }
 
+    html { background: var(--bg); }
+
     body {
+      margin: 0;
       background: var(--bg);
       font-family: 'Inter', system-ui, sans-serif;
       color: var(--text);
@@ -76,21 +79,26 @@
       line-height: 1.8;
     }
 
-    .image-placeholder {
-      background: var(--surface);
-      border: 2px dashed var(--border);
+    .project-img {
+      width: 100%;
       border-radius: 12px;
-      padding: 60px 24px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 500;
+      border: 1px solid var(--border);
       margin: 28px 0;
+      display: block;
+    }
+
+    .project-video {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin: 28px 0;
+      display: block;
+      background: #000;
     }
 
     pre {
-      background: #0d1b2a;
-      border: 1px solid rgba(0,0,0,0.12);
+      background: #0d1117;
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 20px 24px;
       overflow-x: auto;
@@ -103,9 +111,9 @@
       line-height: 1.7;
     }
     .code-comment { color: #6a9955; }
-    .code-keyword { color: #c586c0; }
+    .code-flag { color: #9cdcfe; }
     .code-string { color: #ce9178; }
-    .code-func { color: #dcdcaa; }
+    .code-value { color: #b5cea8; }
 
     @media (max-width: 768px) {
       .container { padding: 40px 20px 80px; }
@@ -122,49 +130,72 @@
     <h1>Coffee Making Robot</h1>
 
     <h2>Overview</h2>
-    <p>This project tackles multi-step robotic manipulation for an everyday task: making coffee. Using the so101 robot arms and the LeRobot framework, I collected a teleoperation dataset covering the full coffee-making sequence — from grasping the cup, to positioning it under the machine, to operating the brew button. The goal was to train a vision-language-action policy that could reproduce this long-horizon behavior from learned demonstrations.</p>
-    <p>I used Physical Intelligence's &pi;0.5 flow matching architecture as the backbone, fine-tuning it on the collected dataset. A key focus was on action normalization strategies, comparing quantile normalization against mean-std normalization to understand their effects on prediction fidelity and trajectory smoothness.</p>
+    <p>This project tackles long horizon robotic manipulation for making coffee as part of Triton Droids. Using the so101 robot arms and the LeRobot framework, I collected a teleoperated dataset covering the full coffee making sequence from grasping the cup, to positioning it under the machine, to clicking the brew button. The goal was to train a vision language action model that could reproduce this long horizon behavior from learned demonstrations.</p>
+    <p>We compared different approaches, and found Physical Intelligence's &pi;0.5 model to be the most suitable for this task. The model demonstrates strong performance in handling the complex, multi step process of coffee making.</p>
+    <p>We've observed other models to struggle at simpler tasks, and we conclude that it is the task complexity along with the size of the model that determines their capability.</p>
 
-    <div class="image-placeholder">Add screenshot here — project demo / robot setup</div>
+    <img src="../so101setup.png" alt="so101 robot arm setup" class="project-img">
 
     <h2>Data Collection Pipeline</h2>
-    <p>Demonstration data was collected by teleoperating the so101 arms through the full coffee-making sequence. Each episode was captured from multiple synchronized camera angles to provide rich visual context for the policy. I implemented temporal task segmentation to break long-horizon sequences into distinct phases (reach, grasp, pour, place), which helped the model learn phase transitions more reliably.</p>
+    <p>Demonstration data was collected by teleoperating the so101 arms through the full coffee making sequence. Each episode was captured from multiple synchronized camera angles to provide rich visual context for the policy.</p>
     <p>The dataset was uploaded to HuggingFace for version control and reproducibility.</p>
 
-<pre><code><span class="code-comment"># Example: LeRobot dataset recording configuration</span>
-<span class="code-keyword">from</span> lerobot.common.datasets <span class="code-keyword">import</span> LeRobotDataset
-
-dataset = <span class="code-func">LeRobotDataset</span>(
-    repo_id=<span class="code-string">"gustavo/coffee-making-so101"</span>,
-    fps=<span class="code-string">30</span>,
-    video=<span class="code-keyword">True</span>,
-    image_keys=[<span class="code-string">"observation.images.top"</span>, <span class="code-string">"observation.images.wrist"</span>],
-)
+<pre><code><span class="code-comment"># Data collection via teleoperation with LeRobot</span>
+lerobot-record \
+    <span class="code-flag">--robot.type</span>=<span class="code-string">so101_follower</span> \
+    <span class="code-flag">--robot.port</span>=<span class="code-string">/dev/tty.usbmodem5A7A0570191</span> \
+    <span class="code-flag">--robot.id</span>=<span class="code-string">triton_follower</span> \
+    <span class="code-flag">--robot.cameras</span>=<span class="code-string">"{ front: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30, fourcc: MJPG},
+      side: {type: opencv, index_or_path: 1, width: 640, height: 480, fps: 30, fourcc: MJPG}}"</span> \
+    <span class="code-flag">--teleop.type</span>=<span class="code-string">so101_leader</span> \
+    <span class="code-flag">--teleop.port</span>=<span class="code-string">/dev/tty.usbmodem5AB01824781</span> \
+    <span class="code-flag">--teleop.id</span>=<span class="code-string">triton_leader</span> \
+    <span class="code-flag">--display_data</span>=<span class="code-value">true</span> \
+    <span class="code-flag">--dataset.repo_id</span>=<span class="code-string">Gueso/coffee_making</span> \
+    <span class="code-flag">--dataset.num_episodes</span>=<span class="code-value">200</span> \
+    <span class="code-flag">--dataset.single_task</span>=<span class="code-string">"Pick up the coffee cup, place it on the coffee machine, and press the 6 button."</span> \
+    <span class="code-flag">--dataset.episode_time_s</span>=<span class="code-value">35</span> \
+    <span class="code-flag">--dataset.reset_time_s</span>=<span class="code-value">30</span> \
+    <span class="code-flag">--resume</span>=<span class="code-value">true</span>
 </code></pre>
-
-    <div class="image-placeholder">Add screenshot here — data collection setup / camera views</div>
 
     <h2>Model Architecture &amp; Training</h2>
-    <p>The &pi;0.5 flow matching policy was fine-tuned on the collected dataset using the LeRobot training pipeline. Flow matching generates smooth, continuous action trajectories by learning a vector field that maps noise to demonstrations — making it well-suited for precise manipulation tasks.</p>
-    <p>I experimented with two normalization strategies for the action space: quantile normalization (which maps actions to a uniform distribution) and mean-std normalization (which centers and scales by standard deviation). Quantile normalization proved more robust for tasks with multi-modal action distributions, while mean-std worked well for smoother, unimodal sequences.</p>
+    <p>The policy was fine tuned on a 200 episode dataset using the LeRobot training pipeline. Flow matching generates smooth, continuous action trajectories by learning a vector field that maps noise to demonstrations making it well-suited for precise manipulation tasks.</p>
+    <p>I experimented with two normalization strategies for the action space, quantile normalization (which maps actions to a uniform distribution) and mean std normalization (which centers and scales by standard deviation). Quantile normalization proved more robust for tasks with multi modal action distributions, while mean std worked well for smoother, unimodal sequences.</p>
 
-<pre><code><span class="code-comment"># Example: Training configuration for pi0.5</span>
-training:
-  policy: <span class="code-string">"pi0.5"</span>
-  batch_size: <span class="code-string">32</span>
-  lr: <span class="code-string">1e-4</span>
-  num_epochs: <span class="code-string">200</span>
-  normalization: <span class="code-string">"quantile"</span>   <span class="code-comment"># vs "mean_std"</span>
-  action_chunk_size: <span class="code-string">50</span>
+<pre><code><span class="code-comment"># Training script for pi0.5 policy</span>
+python lerobot_train.py \
+    <span class="code-flag">--dataset.repo_id</span>=<span class="code-string">Gueso/coffee_making</span> \
+    <span class="code-flag">--policy.type</span>=<span class="code-string">pi05</span> \
+    <span class="code-flag">--policy.pretrained_path</span>=<span class="code-string">lerobot/pi05_base</span> \
+    <span class="code-flag">--policy.normalization_mapping</span>=<span class="code-string">'{"ACTION": "MEAN_STD", "STATE": "MEAN_STD", "VISUAL": "IDENTITY"}'</span> \
+    <span class="code-flag">--policy.compile_model</span>=<span class="code-value">true</span> \
+    <span class="code-flag">--policy.gradient_checkpointing</span>=<span class="code-value">true</span> \
+    <span class="code-flag">--policy.dtype</span>=<span class="code-string">bfloat16</span> \
+    <span class="code-flag">--policy.device</span>=<span class="code-string">cuda</span> \
+    <span class="code-flag">--policy.repo_id</span>=<span class="code-string">Gueso/pi05_coffeev2_50k</span> \
+    <span class="code-flag">--output_dir</span>=<span class="code-string">/content/drive/MyDrive/outputs/pi05_coffeev2</span> \
+    <span class="code-flag">--job_name</span>=<span class="code-string">pi05_coffee_run</span> \
+    <span class="code-flag">--batch_size</span>=<span class="code-value">16</span> \
+    <span class="code-flag">--steps</span>=<span class="code-value">50000</span> \
+    <span class="code-flag">--policy.freeze_vision_encoder</span>=<span class="code-value">false</span> \
+    <span class="code-flag">--config_path</span>=<span class="code-string">/content/drive/MyDrive/outputs/pi05_coffeev2/checkpoints/025000/pretrained_model/train_config.json</span> \
+    <span class="code-flag">--policy.train_expert_only</span>=<span class="code-value">false</span> \
+    <span class="code-flag">--save_freq</span>=<span class="code-value">2000</span> \
+    <span class="code-flag">--resume</span>=<span class="code-value">true</span>
 </code></pre>
 
-    <div class="image-placeholder">Add screenshot here — training curves / results comparison</div>
-
     <h2>Results &amp; Takeaways</h2>
-    <p>The trained policy was able to execute the full coffee-making sequence with reasonable success rate from the learned demonstrations. Key findings included the importance of camera placement for consistent visual features, and the significant impact that normalization choice has on action prediction quality — especially for tasks involving multiple distinct motion phases.</p>
-    <p>Future work includes expanding the dataset with more diverse episodes and testing policy generalization across different cup placements and coffee machine configurations.</p>
+    <p>The trained policy was able to execute the full coffee-making sequence with reasonable success rate from the learned demonstrations. Key findings included the importance of camera placement for consistent visual features, uniform lighting conditions, and data collection trajectories.</p>
+    <p>The policy's performance was sensitive to the slightest variation in camera positioning, in which we solved by 3d printing increasingly more robust camera mounts.</p>
+    <p>It was even more sensitive to lighting conditions, which we addressed by creating a structure that controlled the lighting, this was our main bottleneck.</p>
+    <p>During data collection our team would switch teleoperators which was a source of inconsistency, and cost us the most time. Because everyone took a different trajectory and we didn't collect enough data for the policy to learn multiple trajectories, we had to keep collecting new datasets.</p>
+    <p>For our cup placement we stayed in the general vicinity but did not stick to a specific location, so the policy did learn to generalize in different locations.</p>
+    <p>Future work includes expanding the dataset with more diverse episodes and testing the policy on a more robust setup.</p>
 
-    <div class="image-placeholder">Add screenshot here — successful rollout / evaluation metrics</div>
+    <video class="project-video" controls muted playsinline>
+      <source src="../coffeemaking.mp4" type="video/mp4">
+    </video>
   </div>
 </body>
 </html>

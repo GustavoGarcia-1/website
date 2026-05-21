@@ -5,26 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gustavo Garcia</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:      #ffffff;
-      --surface: #f7f8fa;
-      --text:    #1a1a2e;
-      --muted:   #6b7280;
-      --accent:  #2563eb;
-      --border:  rgba(0,0,0,0.08);
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --text:    #e8eaf0;
+      --muted:   #8b90a0;
+      --accent:  #6b8fc4;
+      --border:  rgba(255,255,255,0.07);
     }
 
     html {
       scroll-snap-type: y mandatory;
+      overflow-x: hidden;
       overflow-y: scroll;
       scroll-behavior: smooth;
+      background: var(--bg);
     }
 
     body {
+      margin: 0;
+      padding: 0;
       background: var(--bg);
       font-family: 'Inter', system-ui, sans-serif;
       color: var(--text);
@@ -45,7 +49,7 @@
     /* ── FADE-IN ANIMATIONS ──────────────────────────────────────── */
     .fade-in {
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(24px);
       transition: opacity 0.7s ease, transform 0.7s ease;
     }
     .fade-in.visible {
@@ -69,8 +73,8 @@
       position: relative;
     }
     .dot-nav button {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       border: 2px solid var(--muted);
       background: transparent;
@@ -89,7 +93,7 @@
     }
     .dot-nav .dot-label {
       position: absolute;
-      right: 24px;
+      right: 22px;
       top: 50%;
       transform: translateY(-50%);
       font-size: 11px;
@@ -106,117 +110,148 @@
       opacity: 1;
     }
 
-    /* ── HERO SECTION ────────────────────────────────────────────── */
-    #hero {
-      background: url('art_bg1.png') center/cover no-repeat;
-      padding: 0;
+    /* ── BANNER STRIP ────────────────────────────────────────────── */
+    .banner-strip {
+      width: 100%;
+      height: 210px;
+      background: url('artbgv2.png') center/cover no-repeat;
       position: relative;
+      flex-shrink: 0;
     }
-    #hero::before {
+    .banner-strip::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.45);
-      z-index: 1;
+      background: linear-gradient(
+        to bottom,
+        rgba(15,17,23,0) 0%,
+        rgba(15,17,23,0.25) 55%,
+        rgba(15,17,23,1) 100%
+      );
     }
-    .hero-content {
-      position: relative;
-      z-index: 2;
+
+    /* ── ABOUT (COMBINED PROFILE) ────────────────────────────────── */
+    #about {
+      padding: 0 0 80px;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .profile-content {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
-      text-align: center;
+      max-width: 640px;
+      width: 100%;
+      padding: 0 24px;
     }
     .hero-avatar {
-      width: 200px;
-      height: 200px;
+      width: 220px;
+      height: 220px;
       border-radius: 50%;
       overflow: hidden;
-      border: 3px solid rgba(255,255,255,0.8);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      border: 4px solid var(--surface);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      margin-top: -80px;
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
     }
-    .hero-avatar img {
+    .hero-avatar {
+      cursor: pointer;
+      perspective: 800px;
+    }
+    .avatar-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.8s ease;
+    }
+    .avatar-inner.flipped {
+      transform: rotateY(180deg);
+    }
+    .avatar-inner img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      backface-visibility: hidden;
+      border-radius: 50%;
+    }
+    .avatar-inner img.avatar-back {
+      transform: rotateY(180deg);
     }
     .hero-name {
-      font-size: 56px;
-      font-weight: 800;
-      letter-spacing: -2px;
-      color: #ffffff;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 42px;
+      font-weight: 400;
+      color: var(--text);
+      margin-top: 22px;
+      letter-spacing: -0.5px;
+    }
+.bio-link {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(107,143,196,0.3);
+      transition: border-color 0.2s;
+    }
+    .bio-link:hover {
+      border-color: var(--accent);
+    }
+    .profile-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .profile-links .ucsd-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .profile-links .ucsd-item img {
+      height: 22px;
+      width: auto;
+    }
+    .profile-links .separator {
+      color: var(--border);
+      font-size: 13px;
+    }
+    .profile-links a {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.2s;
+    }
+    .profile-links a:hover {
+      color: var(--accent);
     }
     .hero-accent-line {
-      width: 40px;
-      height: 3px;
+      width: 36px;
+      height: 2px;
       background: var(--accent);
       border-radius: 2px;
+      margin-top: 20px;
     }
-    .hero-sub {
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.75);
-    }
-    .scroll-indicator {
-      position: absolute;
-      bottom: 36px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      color: rgba(255,255,255,0.6);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      animation: bounce 2s infinite;
-    }
-    .scroll-indicator svg {
-      width: 20px;
-      height: 20px;
-      stroke: rgba(255,255,255,0.6);
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(8px); }
-    }
-
-    /* ── SECTION TITLES ──────────────────────────────────────────── */
-    .section-inner {
+    .about-bio {
+      margin-top: 28px;
       width: 100%;
-      max-width: 900px;
-    }
-    .section-title {
-      font-size: 42px;
-      font-weight: 800;
-      letter-spacing: -1.5px;
-      margin-bottom: 44px;
-      color: var(--text);
-    }
-    .section-title em {
-      color: var(--accent);
-      font-style: normal;
-    }
-
-    /* ── ABOUT ────────────────────────────────────────────────────── */
-    .about-layout {
-      display: grid;
-      grid-template-columns: 1.3fr 0.7fr;
-      gap: 60px;
-      align-items: start;
     }
     .about-bio p {
       font-size: 15px;
       line-height: 1.8;
       color: var(--muted);
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
     .label {
       font-size: 11px;
@@ -225,6 +260,7 @@
       text-transform: uppercase;
       color: var(--accent);
       margin-bottom: 14px;
+      margin-top: 24px;
     }
     .chips {
       display: flex;
@@ -232,35 +268,48 @@
       gap: 8px;
     }
     .chip {
-      background: #f0f1f3;
+      background: rgba(107,143,196,0.1);
       color: var(--text);
       font-size: 12px;
       font-weight: 500;
-      padding: 6px 16px;
+      padding: 6px 14px;
       border-radius: 100px;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(107,143,196,0.15);
+    }
+
+    /* ── SECTION TITLES ──────────────────────────────────────────── */
+    .section-inner {
+      width: 100%;
+      max-width: 900px;
+    }
+    .section-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 40px;
+      color: var(--text);
     }
 
     /* ── PROJECTS ─────────────────────────────────────────────────── */
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
     }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 28px;
+      border-radius: 12px;
+      padding: 26px;
       transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
     .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 14px 32px rgba(0,0,0,0.08);
-      border-color: rgba(37,99,235,0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.3);
+      border-color: rgba(107,143,196,0.25);
     }
     .card-tag {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -268,7 +317,7 @@
       margin-bottom: 10px;
     }
     .card h3 {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       margin-bottom: 8px;
       color: var(--text);
@@ -292,14 +341,14 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 4px;
+      height: 3px;
       background: var(--border);
-      border-radius: 0 0 14px 14px;
+      border-radius: 0 0 12px 12px;
     }
     .card-wip-bar-fill {
       height: 100%;
       background: var(--accent);
-      border-radius: 0 0 0 14px;
+      border-radius: 0 0 0 12px;
     }
     .card-wip-label {
       display: inline-block;
@@ -311,102 +360,34 @@
       margin-top: 12px;
     }
 
-    /* ── BLOG ─────────────────────────────────────────────────────── */
-    .blog-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    /* ── GALLERY ──────────────────────────────────────────────────── */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+      align-items: start;
     }
-    .blog-item {
-      background: var(--surface);
+    .gallery-item {
+      border-radius: 10px;
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 22px 28px;
+      overflow: hidden;
+      background: var(--bg);
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
       display: flex;
       align-items: center;
-      gap: 26px;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      justify-content: center;
     }
-    .blog-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-      border-color: rgba(37,99,235,0.3);
+    .gallery-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      border-color: rgba(107,143,196,0.25);
     }
-    .blog-date {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--accent);
-      text-align: center;
-      min-width: 44px;
-      line-height: 1.4;
-    }
-    .blog-item h3 {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--text);
-    }
-    .blog-item p {
-      font-size: 13px;
-      color: var(--muted);
+    .gallery-item img {
+      width: 100%;
+      display: block;
     }
 
-    /* ── RESUME ───────────────────────────────────────────────────── */
-    .resume-wrap { width: 100%; }
-    .resume-section { margin-bottom: 36px; }
-    .resume-section-title {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 16px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-    .resume-item { margin-bottom: 20px; }
-    .resume-item-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 3px;
-    }
-    .resume-item-head strong {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .resume-item-head span {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .resume-org {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .resume-item ul {
-      padding-left: 18px;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.8;
-    }
-    .link-row {
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-    }
-    .link-row a {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      text-decoration: none;
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 1px;
-      transition: color 0.2s;
-    }
-    .link-row a:hover { color: var(--accent); }
 
     /* ── RESPONSIVE ───────────────────────────────────────────────── */
     @media (max-width: 768px) {
@@ -415,26 +396,22 @@
         min-height: 100vh;
         justify-content: center;
       }
-      .dot-nav { display: none; }
-      .hero-name { font-size: 36px; }
-      .hero-sub { font-size: 12px; }
-      .hero-avatar { width: 150px; height: 150px; }
-      .section-title { font-size: 30px; margin-bottom: 30px; }
-      .about-layout {
-        grid-template-columns: 1fr;
-        gap: 30px;
+      #about {
+        padding: 0 0 60px;
       }
+      .dot-nav { display: none; }
+      .banner-strip { height: 150px; }
+      .hero-avatar { width: 170px; height: 170px; margin-top: -60px; }
+      .hero-name { font-size: 32px; }
+      .profile-content { text-align: center; }
+      .about-bio { text-align: left; }
+      .chips { justify-content: center; }
+      .section-title { font-size: 26px; margin-bottom: 28px; }
       .grid-2 {
         grid-template-columns: 1fr;
       }
-      .blog-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-      .resume-item-head {
-        flex-direction: column;
-        gap: 2px;
+      .gallery-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -444,70 +421,59 @@
 <!-- SIDE DOT NAV -->
 <ul class="dot-nav">
   <li>
-    <span class="dot-label">Home</span>
-    <button class="active" data-section="hero"></button>
-  </li>
-  <li>
     <span class="dot-label">About</span>
-    <button data-section="about"></button>
+    <button class="active" data-section="about"></button>
   </li>
   <li>
     <span class="dot-label">Projects</span>
     <button data-section="projects"></button>
   </li>
   <li>
-    <span class="dot-label">Blog</span>
-    <button data-section="blog"></button>
-  </li>
-  <li>
-    <span class="dot-label">Resume</span>
-    <button data-section="resume"></button>
+    <span class="dot-label">Gallery</span>
+    <button data-section="gallery"></button>
   </li>
 </ul>
 
-<!-- HERO -->
-<section id="hero">
-  <div class="hero-content">
-    <div class="hero-avatar"><img src="me.jpeg" alt="Gustavo Garcia"></div>
-    <h1 class="hero-name">Gustavo Garcia</h1>
-    <div class="hero-accent-line"></div>
-    <p class="hero-sub">Electrical Engineering &nbsp;&middot;&nbsp; Machine Learning &amp; Controls &nbsp;&middot;&nbsp; UC San Diego</p>
-  </div>
-  <div class="scroll-indicator">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="6 9 12 15 18 9"></polyline>
-    </svg>
-  </div>
-</section>
-
 <!-- ABOUT -->
 <section id="about">
-  <div class="section-inner fade-in">
-    <h1 class="section-title">About <em>Me</em></h1>
-    <div class="about-layout">
-      <div class="about-bio">
-        <p>Hi, I'm Gustavo, an Electrical Engineering undergraduate at UC San Diego specializing in Machine Learning and Controls. I'm passionate about robotics, autonomous systems, and making machines that can perceive, reason, and act in the physical world.</p>
-        <p>As a Robotics Software Engineer and Incoming Vice President of Engineering at Triton Droids, UCSD's humanoid robotics club, my work spans vision-language-action models, reinforcement learning, and sim-to-real transfer for bipedal locomotion.</p>
-        <p>In my free time I enjoy staying active through sports like basketball, football, and tennis. I also love reading about the development of jazz music, during the era of people like Louis Armstrong and Malcolm X.</p>
-        <p>I'm actively looking for research and industry opportunities in the robotics space.</p>
+  <div class="banner-strip"></div>
+  <div class="profile-content fade-in">
+    <div class="hero-avatar" id="avatar">
+      <div class="avatar-inner" id="avatar-inner">
+        <img src="me_photo.jpeg" alt="Gustavo Garcia">
+        <img src="aime.png" alt="Gustavo Garcia AI" class="avatar-back">
       </div>
-      <div>
-        <p class="label">Skills &amp; Tools</p>
-        <div class="chips">
-          <span class="chip">Python</span>
-          <span class="chip">C++</span>
-          <span class="chip">PID</span>
-          <span class="chip">LeRobot</span>
-          <span class="chip">HuggingFace</span>
-          <span class="chip">Git</span>
-          <span class="chip">Linux / Ubuntu</span>
-          <span class="chip">Mujoco</span>
-          <span class="chip">Reinforcement Learning</span>
-          <span class="chip">Machine Learning</span>
-          <span class="chip">Onshape</span>
-          <span class="chip">EagleCAD</span>
-        </div>
-      </div>
+    </div>
+    <h1 class="hero-name">Gustavo Garcia</h1>
+    <div class="profile-links">
+      <span class="ucsd-item"><img src="UCSD-Seal-Logo.png" alt="UCSD Seal"> UC San Diego</span>
+      <span class="separator">|</span>
+      <a href="https://www.linkedin.com/in/gustavogarcia1/" target="_blank">LinkedIn</a>
+      <span class="separator">|</span>
+      <a href="https://tritondroids.org/" target="_blank">Triton Droids</a>
+      <span class="separator">|</span>
+      <a href="mailto:gag009@ucsd.edu">gag009@ucsd.edu</a>
+    </div>
+    <div class="hero-accent-line"></div>
+    <div class="about-bio">
+      <p>I'm an Electrical Engineering undergraduate in my 2nd year at UC San Diego specializing in Machine Learning and Controls. I lead the engineering efforts at Triton Droids with a focus on Physical AI.</p>
+      <p>At triton droids, we particpate in various robotics competitions and research projects, including competition based humanoid robotic soccer and mixed martial arts. </p>
+      <p>I am interested in robot learning through vison language action models, reinforcement learning, and the emerging field of world models. I am excited to get involved with research and build my technical skills.</p>
+      <p>For fun I like to play basketball, listen to <a href="https://www.youtube.com/watch?v=IF3_j3GeuLY" target="_blank" class="bio-link">jazz</a>, and shoot some pool.</p>
+    </div>
+    <p class="label">Skills &amp; Tools</p>
+    <div class="chips">
+      <span class="chip">Python</span>
+      <span class="chip">C++</span>
+      <span class="chip">LeRobot</span>
+      <span class="chip">HuggingFace</span>
+      <span class="chip">Git</span>
+      <span class="chip">Linux / Ubuntu</span>
+      <span class="chip">Mujoco</span>
+      <span class="chip">Reinforcement Learning</span>
+      <span class="chip">Machine Learning</span>
+      <span class="chip">Onshape</span>
+      <span class="chip">EagleCAD</span>
     </div>
   </div>
 </section>
@@ -521,126 +487,64 @@
         <div class="card">
           <div class="card-tag">Foundation Models &middot; LeRobot</div>
           <h3>Coffee Making Robot</h3>
-          <p>Collected demonstration dataset via teleoperation on so101 arms with multiple camera angles, covering the full coffee-making sequence. Trained a &pi;0.5 flow matching policy using LeRobot, experimenting with quantile and mean-std normalization to improve action prediction quality.</p>
+          <p>Collected demonstration dataset via teleoperation on so101 arms with multiple camera angles, covering the full coffee making sequence. Trained &pi;0.5 using LeRobot, experimenting with quantile and mean std normalization to improve action prediction quality.</p>
         </div>
       </a>
       <a href="projects/cube-stacking.html" class="card-link">
         <div class="card">
           <div class="card-tag">Foundation Models &middot; LeRobot</div>
           <h3>Cube Stacking Robot</h3>
-          <p>Trained smolVLA, ACT, and &pi;0.5 on so101 robotic arms with hours of teleoperation data to finetune and compare models for cube stacking. Ran training on H100 GPUs through VESSL AI, Google Colab, and SDCC, uploading checkpoints to HuggingFace for reproducibility.</p>
+          <p>Trained smolVLA, ACT, and &pi;0.5 on so101 robotic arms with hours of teleoperation data to finetune and compare models for cube stacking. Ran training on H100 GPUs through VESSL AI, Google Colab, and SDSC, uploading checkpoints to HuggingFace for reproducibility.</p>
         </div>
       </a>
       <a href="projects/pick-and-place.html" class="card-link">
         <div class="card">
           <div class="card-tag">RL &middot; Mujoco &middot; PPO</div>
           <h3>Pick and Place Robot</h3>
-          <p>Built a GPU-accelerated RL environment for a robot arm in MuJoCo MJX and Brax, running 2048 parallelized rollouts in JAX. Designed multi-phase shaped rewards with tanh distance shaping and velocity-based stillness penalties. Trained PPO to 160M+ environment steps, tracked via Weights &amp; Biases.</p>
+          <p>Built on a GPU accelerated RL environment for a robot arm in MuJoCo MJX and Brax, running 2048 parallelized rollouts in JAX. Designed multi phase shaped rewards with tanh distance shaping and velocity based stillness penalties. Trained PPO to 160M+ environment steps, tracked via Weights &amp; Biases.</p>
         </div>
       </a>
       <a href="projects/humanoid-punch.html" class="card-link">
         <div class="card card-wip">
-          <div class="card-tag">RL &middot; MJLab &middot; Mocap Imitation</div>
-          <h3>Humanoid Punch (URKL)</h3>
-          <p>Trained an EngineAI T800 humanoid to throw a punch using PPO with mocap imitation in MJLab. Built a whole-body motion tracking pipeline from BVH mocap data, with multi-component exponential reward shaping over 14 tracked body segments and adaptive curriculum sampling.</p>
+          <div class="card-tag">RL &middot; MJLab &middot; PPO</div>
+          <h3>Humanoid Fighting </h3>
+          <p>This project is part of an emerging research fighting league for robots under Engine AI, and we are currently participating in the prelimary rounds. We were tasked to imitate human fighting motions to the best of our abilities with the given dataset.</p>
           <span class="card-wip-label">In Progress</span>
           <div class="card-wip-bar"><div class="card-wip-bar-fill" style="width:40%"></div></div>
         </div>
       </a>
-      <a href="projects/offline-rl-smolvla.html" class="card-link">
-        <div class="card card-wip">
+      <div class="card card-wip">
           <div class="card-tag">Offline RL &middot; smolVLA &middot; MuJoCo</div>
-          <h3>Offline RL + smolVLA</h3>
-          <p>Applying Physical Intelligence's pi0.6 RECAP offline RL framework on top of a smolVLA base model for simulated robotic manipulation in MuJoCo. Combines offline RL fine-tuning with vision-language-action pretraining to improve sample efficiency and task performance without online interaction.</p>
+          <h3>Offline RL + SmolVLA</h3>
+          <p>Devloping a new vla that takes in Physical Intelligence's pi0.6 RECAP offline RL framework on top of a smolVLA base model for simulated robotic manipulation in MuJoCo. Combines offline RL fine tuning with vision language action pretraining to improve sample efficiency and task performance without online interaction.</p>
           <span class="card-wip-label">In Progress</span>
-          <div class="card-wip-bar"><div class="card-wip-bar-fill" style="width:20%"></div></div>
+          <div class="card-wip-bar"><div class="card-wip-bar-fill" style="width:5%"></div></div>
         </div>
-      </a>
     </div>
   </div>
 </section>
 
-<!-- BLOG -->
-<section id="blog">
+<!-- GALLERY -->
+<section id="gallery">
   <div class="section-inner fade-in">
-    <h1 class="section-title">Blog</h1>
-    <div class="blog-list">
-      <div class="blog-item">
-        <div class="blog-date">MAY<br>2026</div>
-        <div>
-          <h3>SOTA vla's and when were stand now.</h3>
-          <p>My experience working with state of the art vision-language-action models, managing open source code bases and compute limits.</p>
-        </div>
+    <h1 class="section-title">Gallery</h1>
+    <div class="gallery-grid">
+      <div class="gallery-item">
+        <img src="camping.jpeg" alt="Camping">
       </div>
-      <div class="blog-item">
-        <div class="blog-date">APR<br>2026</div>
-        <div>
-          <h3>Starting in 3d printing</h3>
-          <p>Lessons from my experience of owning a 3D printer.</p>
-        </div>
+      <div class="gallery-item">
+        <img src="fishing.JPG" alt="Fishing">
       </div>
-      <div class="blog-item">
-        <div class="blog-date">MAR<br>2026</div>
-        <div>
-          <h3>Why Sim-to-Real Is Harder Than It Looks</h3>
-          <p>My take after a semester trying to make MuJoCo locomotion policies work on real hardware.</p>
-        </div>
+      <div class="gallery-item">
+        <img src="rocky.jpg" alt="Rocky">
+      </div>
+      <div class="gallery-item">
+        <img src="legs.jpeg" alt="Legs">
       </div>
     </div>
   </div>
 </section>
 
-<!-- RESUME -->
-<section id="resume">
-  <div class="section-inner fade-in">
-    <h1 class="section-title">Resume</h1>
-    <div class="resume-wrap">
-      <div class="resume-section">
-        <div class="resume-section-title">Education</div>
-        <div class="resume-item">
-          <div class="resume-item-head">
-            <strong>B.S. Electrical Engineering | Specialization in Machine Learning and Controls</strong>
-            <span>Sep. 2024 - 2028</span>
-          </div>
-          <div class="resume-org">University of California, San Diego &mdash; La Jolla, CA</div>
-        </div>
-      </div>
-      <div class="resume-section">
-        <div class="resume-section-title">Experience</div>
-        <div class="resume-item">
-          <div class="resume-item-head">
-            <strong>Robotics Software Engineer | Incoming VP Engineering &mdash; Triton Droids</strong>
-            <span>Jan. 2025 - Present</span>
-          </div>
-          <div class="resume-org">La Jolla, CA &mdash; UC San Diego humanoid robotics club | Mujoco, Isaac Lab, Python, RL</div>
-          <ul>
-            <li>Led a VLA deployment team training Physical Intelligence's &pi;0.5 flow matching policy on teleoperated data using the LeRobot framework, iterating on quantile and mean-std action normalization to improve prediction fidelity across several manipulation tasks.</li>
-            <li>Configured dual camera pipelines with synchronized multi-view capture, implemented temporal task segmentation for long-horizon sequences, and validated learned policies on YAM / so101 robot arms in varied physical environments and lighting conditions.</li>
-            <li>Co-authored the software architecture section of the club's humanoid robot proposal, specifying a modular open-source control stack for bipedal locomotion with sim2real transfer via Isaac Lab.</li>
-            <li>Optimized the personal humanoid robot for locomotion, derived per-joint PD gains, friction coefficients, and armature inertia parameters from Robstride motor datasheets for a 10-DOF lower body, validating actuator dynamics in Isaac Lab to close the sim-to-real gap.</li>
-          </ul>
-        </div>
-        <div class="resume-item">
-          <div class="resume-item-head">
-            <strong>Summer Internship Prep Program &mdash; UC San Diego</strong>
-            <span>June 2024 - July 2024</span>
-          </div>
-          <div class="resume-org">Remote &mdash; Python, Circuitry, CAD</div>
-          <ul>
-            <li>Developed skills in CircuitPython/Python, Onshape, EagleCAD, and general circuitry, finished with a hackathon and end-of-summer capstone project.</li>
-          </ul>
-        </div>
-      </div>
-      <div class="resume-section">
-        <div class="resume-section-title">Links</div>
-        <div class="link-row">
-          <a href="https://linkedin.com/in/gustavogarcia1" target="_blank">LinkedIn</a>
-          <a href="mailto:gag009@ucsd.edu">Email</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <script>
 // ── INTERSECTION OBSERVER: Fade-in + Active Dot ──────────────────────────────
@@ -673,6 +577,16 @@ dots.forEach(btn => {
     if (target) target.scrollIntoView({ behavior: 'smooth' });
   });
 });
+
+// ── AVATAR COIN FLIP (click + auto every 20s) ───────────────────────────────
+const avatarInner = document.getElementById('avatar-inner');
+
+function toggleAvatar() {
+  avatarInner.classList.toggle('flipped');
+}
+
+document.getElementById('avatar').addEventListener('click', toggleAvatar);
+setInterval(toggleAvatar, 20000);
 </script>
 </body>
 </html>
