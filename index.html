@@ -108,9 +108,16 @@
 
     /* ── HERO SECTION ────────────────────────────────────────────── */
     #hero {
-      background: #ffffff;
+      background: url('art_bg1.png') center/cover no-repeat;
       padding: 0;
       position: relative;
+    }
+    #hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1;
     }
     .hero-content {
       position: relative;
@@ -126,8 +133,8 @@
       height: 200px;
       border-radius: 50%;
       overflow: hidden;
-      border: 3px solid var(--accent);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      border: 3px solid rgba(255,255,255,0.8);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
     }
     .hero-avatar img {
       width: 100%;
@@ -139,7 +146,7 @@
       font-size: 56px;
       font-weight: 800;
       letter-spacing: -2px;
-      color: var(--text);
+      color: #ffffff;
     }
     .hero-accent-line {
       width: 40px;
@@ -152,7 +159,7 @@
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: rgba(255,255,255,0.75);
     }
     .scroll-indicator {
       position: absolute;
@@ -164,7 +171,7 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      color: var(--muted);
+      color: rgba(255,255,255,0.6);
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.1em;
@@ -174,7 +181,7 @@
     .scroll-indicator svg {
       width: 20px;
       height: 20px;
-      stroke: var(--muted);
+      stroke: rgba(255,255,255,0.6);
     }
     @keyframes bounce {
       0%, 100% { transform: translateX(-50%) translateY(0); }
